@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';import {makeAdminToken} from '@/lib/admin-auth';
+export async function POST(req:Request){const {password}=await req.json();if(!process.env.ADMIN_PASSWORD||password!==process.env.ADMIN_PASSWORD)return NextResponse.json({ok:false},{status:401});const r=NextResponse.json({ok:true});r.cookies.set('fp_admin',await makeAdminToken(),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict',path:'/',maxAge:60*60*24*7});return r}
