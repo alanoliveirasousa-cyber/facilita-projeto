@@ -51,7 +51,11 @@ const mid = (v: string) =>
     '200+': 225
   }[v] || 0);
 
-export default function Calculator() {
+export default function Calculator({
+  onStartChange
+}: {
+  onStartChange?: (value: boolean) => void;
+}) {
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const [type, setType] = useState<ProjectType | null>(null);
@@ -275,7 +279,10 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
     return (
       <button
         className="cta"
-        onClick={() => setStarted(true)}
+        onClick={() => {
+          setStarted(true);
+          onStartChange?.(true);
+        }}
       >
         CALCULAR MEU PROJETO
       </button>
@@ -652,21 +659,11 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                   setMezzBand(e.target.value)
                 }
               >
-                <option value="0-50">
-                  Até 50 m²
-                </option>
-                <option value="51-100">
-                  51 a 100 m²
-                </option>
-                <option value="101-150">
-                  101 a 150 m²
-                </option>
-                <option value="151-200">
-                  151 a 200 m²
-                </option>
-                <option value="200+">
-                  Acima de 200 m²
-                </option>
+                <option value="0-50">Até 50 m²</option>
+                <option value="51-100">51 a 100 m²</option>
+                <option value="101-150">101 a 150 m²</option>
+                <option value="151-200">151 a 200 m²</option>
+                <option value="200+">Acima de 200 m²</option>
               </select>
             </div>
           )}
@@ -759,21 +756,11 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                     setEdiculaBand(e.target.value)
                   }
                 >
-                  <option value="0-50">
-                    Até 50 m²
-                  </option>
-                  <option value="51-100">
-                    51 a 100 m²
-                  </option>
-                  <option value="101-150">
-                    101 a 150 m²
-                  </option>
-                  <option value="151-200">
-                    151 a 200 m²
-                  </option>
-                  <option value="200+">
-                    Acima de 200 m²
-                  </option>
+                  <option value="0-50">Até 50 m²</option>
+                  <option value="51-100">51 a 100 m²</option>
+                  <option value="101-150">101 a 150 m²</option>
+                  <option value="151-200">151 a 200 m²</option>
+                  <option value="200+">Acima de 200 m²</option>
                 </select>
               </div>
             )}
