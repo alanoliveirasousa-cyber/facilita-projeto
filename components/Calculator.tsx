@@ -196,7 +196,7 @@ export default function Calculator({
     return calculateIndustrial(totalArea);
   }
 
-  async function finish() {
+  function finish() {
     if (
       !name ||
       !city ||
@@ -243,16 +243,6 @@ export default function Calculator({
       consent
     };
 
-    try {
-      await fetch('/api/simulations', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-    } catch {}
-
     setTimeout(() => {
       setResult(payload);
       setLoading(false);
@@ -260,23 +250,8 @@ export default function Calculator({
     }, 2400);
   }
 
-  async function goWhats() {
+  function goWhats() {
     if (!result) return;
-
-    try {
-      await fetch('/api/whatsapp-click', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: result.id,
-          whatsapp: result.whatsapp,
-          created_at: result.created_at,
-          name: result.name
-        })
-      });
-    } catch {}
 
     const number =
       process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
@@ -1261,11 +1236,11 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             />
 
             <span className="muted">
-              Autorizo o armazenamento dos meus
-              dados para gerar esta estimativa. Eles
-              serão utilizados apenas para registro
-              da simulação e não serão usados para
-              contato comercial sem minha iniciativa.
+              Autorizo o uso dos meus dados apenas
+              para gerar esta estimativa e, caso eu
+              escolha iniciar uma conversa, para
+              encaminhar as informações preenchidas
+              ao WhatsApp.
             </span>
           </label>
         </>
