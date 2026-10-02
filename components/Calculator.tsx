@@ -10,8 +10,6 @@ import {
   ProjectType
 } from '@/lib/pricing';
 
-const facade = '/facade-reference.jpg';
-
 const states = [
   ['AC', 'Acre'],
   ['AL', 'Alagoas'],
@@ -51,6 +49,33 @@ const mid = (v: string) =>
     '200+': 225
   }[v] || 0);
 
+function residentialFacade(
+  floors: 'terrea' | 'sobrado',
+  style: string
+) {
+  if (floors === 'terrea') {
+    if (style === 'Moderna') {
+      return '/residencial-terrea-moderna.png';
+    }
+
+    if (style === 'Colonial') {
+      return '/residencial-terrea-colonial.png';
+    }
+
+    return '/residencial-terrea-padrao.png';
+  }
+
+  if (style === 'Moderna') {
+    return '/residencial-sobrado-moderna.png';
+  }
+
+  if (style === 'Colonial') {
+    return '/residencial-sobrado-colonial.png';
+  }
+
+  return '/residencial-sobrado-padrao.png';
+}
+
 export default function Calculator({
   onStartChange
 }: {
@@ -60,7 +85,9 @@ export default function Calculator({
   const [step, setStep] = useState(0);
   const [type, setType] = useState<ProjectType | null>(null);
 
-  const [floors, setFloors] = useState<'terrea' | 'sobrado'>('terrea');
+  const [floors, setFloors] =
+    useState<'terrea' | 'sobrado'>('terrea');
+
   const [area, setArea] = useState(100);
   const [rooms, setRooms] = useState(2);
   const [baths, setBaths] = useState(1);
@@ -132,7 +159,9 @@ export default function Calculator({
         baths,
         suites,
         ediculaArea:
-          edicula === 'sim' ? mid(ediculaBand) : undefined
+          edicula === 'sim'
+            ? mid(ediculaBand)
+            : undefined
       });
     }
 
@@ -251,7 +280,9 @@ Estilo: ${facadeStyle}
 Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizada.`;
 
     window.open(
-      `https://wa.me/${number}?text=${encodeURIComponent(msg)}`,
+      `https://wa.me/${number}?text=${encodeURIComponent(
+        msg
+      )}`,
       '_blank'
     );
   }
@@ -261,6 +292,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
     setStep(0);
     setResult(null);
     setStarted(true);
+    setFacadeStyle('Padrão');
 
     if (!keep) {
       setName('');
@@ -336,7 +368,9 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             {money(result.range.max)}
           </div>
 
-          <p>Estimativa inicial do projeto arquitetônico.</p>
+          <p>
+            Estimativa inicial do projeto arquitetônico.
+          </p>
 
           <div className="summary">
             <div>
@@ -359,6 +393,14 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
 
             {type === 'residential' ? (
               <>
+                <div>
+                  <b>Modelo</b>
+                  <br />
+                  {floors === 'terrea'
+                    ? 'Casa térrea'
+                    : 'Sobrado'}
+                </div>
+
                 <div>
                   <b>Quartos</b>
                   <br />
@@ -386,28 +428,30 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             )}
           </div>
 
-          {pool === 'sim' && type === 'residential' && (
-            <p
-              className="muted"
-              style={{ color: '#d7e3ef' }}
-            >
-              Projeto da piscina será avaliado e orçado
-              separadamente.
-            </p>
-          )}
+          {pool === 'sim' &&
+            type === 'residential' && (
+              <p
+                className="muted"
+                style={{ color: '#d7e3ef' }}
+              >
+                Projeto da piscina será avaliado e
+                orçado separadamente.
+              </p>
+            )}
 
           <p
             className="muted"
             style={{ color: '#d7e3ef' }}
           >
-            Esta é uma estimativa referente ao desenvolvimento
-            do projeto arquitetônico. Projetos complementares,
-            itens especiais, taxas, emolumentos, despesas
-            administrativas e demais custos relacionados aos
-            processos de aprovação não estão incluídos e serão
-            avaliados separadamente. Condições de pagamento,
-            parcelamento e possíveis descontos à vista poderão
-            ser definidos posteriormente.
+            Esta é uma estimativa referente ao
+            desenvolvimento do projeto arquitetônico.
+            Projetos complementares, itens especiais,
+            taxas, emolumentos, despesas administrativas
+            e demais custos relacionados aos processos de
+            aprovação não estão incluídos e serão
+            avaliados separadamente. Condições de
+            pagamento, parcelamento e possíveis descontos
+            à vista poderão ser definidos posteriormente.
           </p>
 
           <div className="actions">
@@ -428,8 +472,8 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               className="cta"
               onClick={goWhats}
             >
-              Quero conversar sobre meu projeto e receber uma
-              proposta personalizada
+              Quero conversar sobre meu projeto e
+              receber uma proposta personalizada
             </button>
           </div>
         </div>
@@ -462,27 +506,63 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
           <h2>Qual tipo de projeto você deseja?</h2>
 
           <div className="choices">
-            {(
-              [
-                ['residential', 'Residencial'],
-                ['commercial', 'Comercial'],
-                ['industrial', 'Industrial']
-              ] as const
-            ).map(([k, l]) => (
-              <button
-                key={k}
-                className={`choice ${
-                  type === k ? 'active' : ''
-                }`}
-                onClick={() => setType(k)}
-              >
-                <img
-                  src={facade}
-                  alt="Referência de fachada"
-                />
-                <b>{l}</b>
-              </button>
-            ))}
+            <button
+              className={`choice ${
+                type === 'residential'
+                  ? 'active'
+                  : ''
+              }`}
+              onClick={() => {
+                setType('residential');
+                setFacadeStyle('Padrão');
+              }}
+            >
+              <img
+                src="/residencial-terrea-moderna.png"
+                alt="Projeto residencial"
+              />
+              <b>Residencial</b>
+            </button>
+
+            <button
+              className={`choice ${
+                type === 'commercial'
+                  ? 'active'
+                  : ''
+              }`}
+              onClick={() => {
+                setType('commercial');
+                setFacadeStyle(
+                  'Comercial padrão'
+                );
+              }}
+            >
+              <img
+                src="/facade-reference.jpg"
+                alt="Projeto comercial"
+              />
+              <b>Comercial</b>
+            </button>
+
+            <button
+              className={`choice ${
+                type === 'industrial'
+                  ? 'active'
+                  : ''
+              }`}
+              onClick={() => {
+                setType('industrial');
+                setFacadeStyle(
+                  'Industrial padrão'
+                );
+              }}
+            >
+              <img
+                src="/facade-reference.jpg"
+                alt="Projeto industrial"
+              />
+              <b>Industrial</b>
+            </button>
           </div>
         </>
       )}
@@ -495,20 +575,38 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             <div className="grid2">
               <button
                 className={`choice ${
-                  floors === 'terrea' ? 'active' : ''
+                  floors === 'terrea'
+                    ? 'active'
+                    : ''
                 }`}
-                onClick={() => setFloors('terrea')}
+                onClick={() => {
+                  setFloors('terrea');
+                  setFacadeStyle('Padrão');
+                }}
               >
-                Casa térrea
+                <img
+                  src="/residencial-terrea-padrao.png"
+                  alt="Casa térrea"
+                />
+                <b>Casa térrea</b>
               </button>
 
               <button
                 className={`choice ${
-                  floors === 'sobrado' ? 'active' : ''
+                  floors === 'sobrado'
+                    ? 'active'
+                    : ''
                 }`}
-                onClick={() => setFloors('sobrado')}
+                onClick={() => {
+                  setFloors('sobrado');
+                  setFacadeStyle('Padrão');
+                }}
               >
-                Sobrado
+                <img
+                  src="/residencial-sobrado-padrao.png"
+                  alt="Sobrado"
+                />
+                <b>Sobrado</b>
               </button>
             </div>
           )}
@@ -534,7 +632,9 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                 const n = Number(
                   prompt(
                     `Digite a metragem acima de ${
-                      type === 'industrial' ? 1000 : 300
+                      type === 'industrial'
+                        ? 1000
+                        : 300
                     } m²:`
                   )
                 );
@@ -543,273 +643,426 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               }}
             >
               Acima de{' '}
-              {type === 'industrial' ? 1000 : 300} m²
+              {type === 'industrial'
+                ? 1000
+                : 300}{' '}
+              m²
             </button>
           </div>
 
           <p className="muted">
-            A metragem é uma referência inicial e poderá ser
-            refinada no desenvolvimento personalizado.
+            A metragem é uma referência inicial e
+            poderá ser refinada no desenvolvimento
+            personalizado.
           </p>
         </>
       )}
 
-      {step === 2 && type === 'residential' && (
-        <>
-          <h2>Configuração principal</h2>
+      {step === 2 &&
+        type === 'residential' && (
+          <>
+            <h2>Configuração principal</h2>
 
-          <div className="grid3">
-            <div className="field">
-              <label>Quartos</label>
-
-              <select
-                value={rooms}
-                onChange={e =>
-                  setRooms(Number(e.target.value))
-                }
-              >
-                {Array.from(
-                  { length: maxes[0] },
-                  (_, i) => i + 1
-                ).map(x => (
-                  <option key={x}>{x}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Banheiros</label>
-
-              <select
-                value={baths}
-                onChange={e =>
-                  setBaths(Number(e.target.value))
-                }
-              >
-                {Array.from(
-                  { length: maxes[1] },
-                  (_, i) => i + 1
-                ).map(x => (
-                  <option key={x}>{x}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Suítes</label>
-
-              <select
-                value={suites}
-                onChange={e =>
-                  setSuites(Number(e.target.value))
-                }
-              >
-                {Array.from(
-                  { length: maxes[2] + 1 },
-                  (_, i) => i
-                ).map(x => (
-                  <option key={x}>{x}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <p className="muted">
-            Para essa metragem, limitamos combinações pouco
-            usuais. Configurações diferentes podem ser estudadas
-            no projeto personalizado.
-          </p>
-        </>
-      )}
-
-      {step === 2 && type !== 'residential' && (
-        <>
-          <h2>Mezanino</h2>
-
-          <div className="grid2">
-            <button
-              className={`choice ${
-                mezz === 'nao' ? 'active' : ''
-              }`}
-              onClick={() => setMezz('nao')}
-            >
-              Sem mezanino
-            </button>
-
-            <button
-              className={`choice ${
-                mezz === 'sim' ? 'active' : ''
-              }`}
-              onClick={() => setMezz('sim')}
-            >
-              Com mezanino
-            </button>
-          </div>
-
-          {mezz === 'sim' && (
-            <div
-              className="field"
-              style={{ marginTop: 16 }}
-            >
-              <label>Faixa do mezanino</label>
-
-              <select
-                value={mezzBand}
-                onChange={e =>
-                  setMezzBand(e.target.value)
-                }
-              >
-                <option value="0-50">Até 50 m²</option>
-                <option value="51-100">51 a 100 m²</option>
-                <option value="101-150">101 a 150 m²</option>
-                <option value="151-200">151 a 200 m²</option>
-                <option value="200+">Acima de 200 m²</option>
-              </select>
-            </div>
-          )}
-        </>
-      )}
-
-      {step === 3 && (
-        <>
-          <h2>Qual estilo mais combina com o projeto?</h2>
-
-          <div className="choices">
-            {(
-              type === 'residential'
-                ? ['Padrão', 'Moderna', 'Colonial']
-                : type === 'commercial'
-                ? [
-                    'Comercial padrão',
-                    'Moderna',
-                    'Sofisticada'
-                  ]
-                : [
-                    'Acesso para caminhões',
-                    'Industrial padrão',
-                    'Industrial moderna'
-                  ]
-            ).map(s => (
-              <button
-                key={s}
-                className={`choice ${
-                  facadeStyle === s ? 'active' : ''
-                }`}
-                onClick={() => setFacadeStyle(s)}
-              >
-                <img src={facade} alt={s} />
-                <b>{s}</b>
-              </button>
-            ))}
-          </div>
-
-          <p className="muted">
-            A escolha é apenas uma referência de estilo. A
-            fachada final será desenvolvida de forma
-            personalizada.
-          </p>
-        </>
-      )}
-
-      {step === 4 && type === 'residential' && (
-        <>
-          <h2>Adicionais</h2>
-
-          <div className="grid2">
-            <div className="field">
-              <label>
-                A garagem já está incluída na metragem total?
-              </label>
-
-              <select
-                value={garage}
-                onChange={e =>
-                  setGarage(e.target.value)
-                }
-              >
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Deseja incluir edícula?</label>
-
-              <select
-                value={edicula}
-                onChange={e =>
-                  setEdicula(e.target.value)
-                }
-              >
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-              </select>
-            </div>
-
-            {edicula === 'sim' && (
+            <div className="grid3">
               <div className="field">
-                <label>Faixa da edícula</label>
+                <label>Quartos</label>
 
                 <select
-                  value={ediculaBand}
+                  value={rooms}
                   onChange={e =>
-                    setEdiculaBand(e.target.value)
+                    setRooms(
+                      Number(e.target.value)
+                    )
                   }
                 >
-                  <option value="0-50">Até 50 m²</option>
-                  <option value="51-100">51 a 100 m²</option>
-                  <option value="101-150">101 a 150 m²</option>
-                  <option value="151-200">151 a 200 m²</option>
-                  <option value="200+">Acima de 200 m²</option>
+                  {Array.from(
+                    { length: maxes[0] },
+                    (_, i) => i + 1
+                  ).map(x => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Banheiros</label>
+
+                <select
+                  value={baths}
+                  onChange={e =>
+                    setBaths(
+                      Number(e.target.value)
+                    )
+                  }
+                >
+                  {Array.from(
+                    { length: maxes[1] },
+                    (_, i) => i + 1
+                  ).map(x => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label>Suítes</label>
+
+                <select
+                  value={suites}
+                  onChange={e =>
+                    setSuites(
+                      Number(e.target.value)
+                    )
+                  }
+                >
+                  {Array.from(
+                    { length: maxes[2] + 1 },
+                    (_, i) => i
+                  ).map(x => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <p className="muted">
+              Para essa metragem, limitamos
+              combinações pouco usuais.
+              Configurações diferentes podem ser
+              estudadas no projeto personalizado.
+            </p>
+          </>
+        )}
+
+      {step === 2 &&
+        type !== 'residential' && (
+          <>
+            <h2>Mezanino</h2>
+
+            <div className="grid2">
+              <button
+                className={`choice ${
+                  mezz === 'nao'
+                    ? 'active'
+                    : ''
+                }`}
+                onClick={() =>
+                  setMezz('nao')
+                }
+              >
+                Sem mezanino
+              </button>
+
+              <button
+                className={`choice ${
+                  mezz === 'sim'
+                    ? 'active'
+                    : ''
+                }`}
+                onClick={() =>
+                  setMezz('sim')
+                }
+              >
+                Com mezanino
+              </button>
+            </div>
+
+            {mezz === 'sim' && (
+              <div
+                className="field"
+                style={{ marginTop: 16 }}
+              >
+                <label>
+                  Faixa do mezanino
+                </label>
+
+                <select
+                  value={mezzBand}
+                  onChange={e =>
+                    setMezzBand(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="0-50">
+                    Até 50 m²
+                  </option>
+
+                  <option value="51-100">
+                    51 a 100 m²
+                  </option>
+
+                  <option value="101-150">
+                    101 a 150 m²
+                  </option>
+
+                  <option value="151-200">
+                    151 a 200 m²
+                  </option>
+
+                  <option value="200+">
+                    Acima de 200 m²
+                  </option>
                 </select>
               </div>
             )}
+          </>
+        )}
 
-            <div className="field">
-              <label>Deseja piscina?</label>
-
-              <select
-                value={pool}
-                onChange={e =>
-                  setPool(e.target.value)
-                }
-              >
-                <option value="nao">Não</option>
-                <option value="sim">
-                  Sim — orçamento à parte
-                </option>
-              </select>
-            </div>
-          </div>
-        </>
-      )}
-
-      {step === 4 && type !== 'residential' && (
+      {step === 3 && (
         <>
-          <h2>Resumo técnico inicial</h2>
+          <h2>
+            Qual estilo mais combina com o projeto?
+          </h2>
 
-          <p>
-            Área principal: <b>{area} m²</b>
-          </p>
+          <div className="choices">
+            {type === 'residential' ? (
+              <>
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Padrão'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Padrão')
+                  }
+                >
+                  <img
+                    src={residentialFacade(
+                      floors,
+                      'Padrão'
+                    )}
+                    alt="Fachada residencial padrão"
+                  />
 
-          <p>
-            Área considerada com mezanino:{' '}
-            <b>{totalArea} m²</b>
-          </p>
+                  <b>Padrão</b>
+                </button>
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Moderna'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Moderna')
+                  }
+                >
+                  <img
+                    src={residentialFacade(
+                      floors,
+                      'Moderna'
+                    )}
+                    alt="Fachada residencial moderna"
+                  />
+
+                  <b>Moderna</b>
+                </button>
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Colonial'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Colonial')
+                  }
+                >
+                  <img
+                    src={residentialFacade(
+                      floors,
+                      'Colonial'
+                    )}
+                    alt="Fachada residencial colonial"
+                  />
+
+                  <b>Colonial</b>
+                </button>
+              </>
+            ) : (
+              (
+                type === 'commercial'
+                  ? [
+                      'Comercial padrão',
+                      'Moderna',
+                      'Sofisticada'
+                    ]
+                  : [
+                      'Acesso para caminhões',
+                      'Industrial padrão',
+                      'Industrial moderna'
+                    ]
+              ).map(s => (
+                <button
+                  key={s}
+                  className={`choice ${
+                    facadeStyle === s
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle(s)
+                  }
+                >
+                  <img
+                    src="/facade-reference.jpg"
+                    alt={s}
+                  />
+
+                  <b>{s}</b>
+                </button>
+              ))
+            )}
+          </div>
 
           <p className="muted">
-            Demais ambientes, exigências locais e itens especiais
-            serão definidos na reunião personalizada.
+            A escolha é apenas uma referência de
+            estilo. A fachada final será desenvolvida
+            de forma personalizada.
           </p>
         </>
       )}
+
+      {step === 4 &&
+        type === 'residential' && (
+          <>
+            <h2>Adicionais</h2>
+
+            <div className="grid2">
+              <div className="field">
+                <label>
+                  A garagem já está incluída na
+                  metragem total?
+                </label>
+
+                <select
+                  value={garage}
+                  onChange={e =>
+                    setGarage(e.target.value)
+                  }
+                >
+                  <option value="sim">
+                    Sim
+                  </option>
+
+                  <option value="nao">
+                    Não
+                  </option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label>
+                  Deseja incluir edícula?
+                </label>
+
+                <select
+                  value={edicula}
+                  onChange={e =>
+                    setEdicula(e.target.value)
+                  }
+                >
+                  <option value="nao">
+                    Não
+                  </option>
+
+                  <option value="sim">
+                    Sim
+                  </option>
+                </select>
+              </div>
+
+              {edicula === 'sim' && (
+                <div className="field">
+                  <label>
+                    Faixa da edícula
+                  </label>
+
+                  <select
+                    value={ediculaBand}
+                    onChange={e =>
+                      setEdiculaBand(
+                        e.target.value
+                      )
+                    }
+                  >
+                    <option value="0-50">
+                      Até 50 m²
+                    </option>
+
+                    <option value="51-100">
+                      51 a 100 m²
+                    </option>
+
+                    <option value="101-150">
+                      101 a 150 m²
+                    </option>
+
+                    <option value="151-200">
+                      151 a 200 m²
+                    </option>
+
+                    <option value="200+">
+                      Acima de 200 m²
+                    </option>
+                  </select>
+                </div>
+              )}
+
+              <div className="field">
+                <label>Deseja piscina?</label>
+
+                <select
+                  value={pool}
+                  onChange={e =>
+                    setPool(e.target.value)
+                  }
+                >
+                  <option value="nao">
+                    Não
+                  </option>
+
+                  <option value="sim">
+                    Sim — orçamento à parte
+                  </option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+      {step === 4 &&
+        type !== 'residential' && (
+          <>
+            <h2>Resumo técnico inicial</h2>
+
+            <p>
+              Área principal:{' '}
+              <b>{area} m²</b>
+            </p>
+
+            <p>
+              Área considerada com mezanino:{' '}
+              <b>{totalArea} m²</b>
+            </p>
+
+            <p className="muted">
+              Demais ambientes, exigências locais e
+              itens especiais serão definidos na
+              reunião personalizada.
+            </p>
+          </>
+        )}
 
       {step === 5 && (
         <>
           <h2>Quase pronto</h2>
 
           <p className="muted">
-            Preencha seus dados para liberar a estimativa.
+            Preencha seus dados para liberar a
+            estimativa.
           </p>
 
           <div className="grid2">
@@ -897,9 +1150,10 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             />
 
             <span className="muted">
-              Autorizo o armazenamento dos meus dados para gerar
-              esta estimativa. Eles serão utilizados apenas para
-              registro da simulação e não serão usados para
+              Autorizo o armazenamento dos meus
+              dados para gerar esta estimativa. Eles
+              serão utilizados apenas para registro
+              da simulação e não serão usados para
               contato comercial sem minha iniciativa.
             </span>
           </label>
@@ -921,7 +1175,9 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
           <button
             className="cta"
             disabled={step === 0 && !type}
-            onClick={() => setStep(step + 1)}
+            onClick={() =>
+              setStep(step + 1)
+            }
           >
             Continuar
           </button>
