@@ -76,6 +76,18 @@ function residentialFacade(
   return '/residencial-sobrado-padrao.png';
 }
 
+function commercialFacade(style: string) {
+  if (style === 'Moderna') {
+    return '/comercial-moderna.png';
+  }
+
+  if (style === 'Sofisticada') {
+    return '/comercial-sofisticada.png';
+  }
+
+  return '/comercial-padrao.png';
+}
+
 export default function Calculator({
   onStartChange
 }: {
@@ -532,13 +544,11 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               }`}
               onClick={() => {
                 setType('commercial');
-                setFacadeStyle(
-                  'Comercial padrão'
-                );
+                setFacadeStyle('Comercial padrão');
               }}
             >
               <img
-                src="/facade-reference.jpg"
+                src="/comercial-moderna.png"
                 alt="Projeto comercial"
               />
               <b>Comercial</b>
@@ -552,9 +562,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               }`}
               onClick={() => {
                 setType('industrial');
-                setFacadeStyle(
-                  'Industrial padrão'
-                );
+                setFacadeStyle('Industrial padrão');
               }}
             >
               <img
@@ -881,20 +889,74 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                   <b>Colonial</b>
                 </button>
               </>
-            ) : (
-              (
-                type === 'commercial'
-                  ? [
-                      'Comercial padrão',
-                      'Moderna',
+            ) : type === 'commercial' ? (
+              <>
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Comercial padrão'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Comercial padrão')
+                  }
+                >
+                  <img
+                    src={commercialFacade(
+                      'Comercial padrão'
+                    )}
+                    alt="Fachada comercial padrão"
+                  />
+
+                  <b>Comercial padrão</b>
+                </button>
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Moderna'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Moderna')
+                  }
+                >
+                  <img
+                    src={commercialFacade(
+                      'Moderna'
+                    )}
+                    alt="Fachada comercial moderna"
+                  />
+
+                  <b>Moderna</b>
+                </button>
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Sofisticada'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Sofisticada')
+                  }
+                >
+                  <img
+                    src={commercialFacade(
                       'Sofisticada'
-                    ]
-                  : [
-                      'Acesso para caminhões',
-                      'Industrial padrão',
-                      'Industrial moderna'
-                    ]
-              ).map(s => (
+                    )}
+                    alt="Fachada comercial sofisticada"
+                  />
+
+                  <b>Sofisticada</b>
+                </button>
+              </>
+            ) : (
+              [
+                'Acesso para caminhões',
+                'Industrial padrão',
+                'Industrial moderna'
+              ].map(s => (
                 <button
                   key={s}
                   className={`choice ${
