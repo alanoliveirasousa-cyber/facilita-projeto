@@ -88,6 +88,18 @@ function commercialFacade(style: string) {
   return '/comercial-padrao.png';
 }
 
+function industrialFacade(style: string) {
+  if (style === 'Logístico') {
+    return '/industrial-logistico.png';
+  }
+
+  if (style === 'Corporativo') {
+    return '/industrial-corporativo.png';
+  }
+
+  return '/industrial-padrao.png';
+}
+
 export default function Calculator({
   onStartChange
 }: {
@@ -566,7 +578,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               }}
             >
               <img
-                src="/facade-reference.jpg"
+                src="/industrial-corporativo.png"
                 alt="Projeto industrial"
               />
               <b>Industrial</b>
@@ -952,30 +964,67 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                 </button>
               </>
             ) : (
-              [
-                'Acesso para caminhões',
-                'Industrial padrão',
-                'Industrial moderna'
-              ].map(s => (
+              <>
                 <button
-                  key={s}
                   className={`choice ${
-                    facadeStyle === s
+                    facadeStyle === 'Industrial padrão'
                       ? 'active'
                       : ''
                   }`}
                   onClick={() =>
-                    setFacadeStyle(s)
+                    setFacadeStyle('Industrial padrão')
                   }
                 >
                   <img
-                    src="/facade-reference.jpg"
-                    alt={s}
+                    src={industrialFacade(
+                      'Industrial padrão'
+                    )}
+                    alt="Galpão industrial padrão"
                   />
 
-                  <b>{s}</b>
+                  <b>Industrial padrão</b>
                 </button>
-              ))
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Logístico'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Logístico')
+                  }
+                >
+                  <img
+                    src={industrialFacade(
+                      'Logístico'
+                    )}
+                    alt="Centro logístico com docas"
+                  />
+
+                  <b>Logístico</b>
+                </button>
+
+                <button
+                  className={`choice ${
+                    facadeStyle === 'Corporativo'
+                      ? 'active'
+                      : ''
+                  }`}
+                  onClick={() =>
+                    setFacadeStyle('Corporativo')
+                  }
+                >
+                  <img
+                    src={industrialFacade(
+                      'Corporativo'
+                    )}
+                    alt="Galpão industrial corporativo"
+                  />
+
+                  <b>Corporativo</b>
+                </button>
+              </>
             )}
           </div>
 
