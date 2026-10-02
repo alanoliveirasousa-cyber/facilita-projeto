@@ -1,25 +1,952 @@
 'use client';
-import {useMemo,useState} from 'react';
-import {calculateResidential,calculateCommercial,calculateIndustrial,rangeFor,money,ProjectType} from '@/lib/pricing';
-const facade='/facade-reference.jpg';
-const states=[['AC','Acre'],['AL','Alagoas'],['AP','Amapá'],['AM','Amazonas'],['BA','Bahia'],['CE','Ceará'],['DF','Distrito Federal'],['ES','Espírito Santo'],['GO','Goiás'],['MA','Maranhão'],['MT','Mato Grosso'],['MS','Mato Grosso do Sul'],['MG','Minas Gerais'],['PA','Pará'],['PB','Paraíba'],['PR','Paraná'],['PE','Pernambuco'],['PI','Piauí'],['RJ','Rio de Janeiro'],['RN','Rio Grande do Norte'],['RS','Rio Grande do Sul'],['RO','Rondônia'],['RR','Roraima'],['SC','Santa Catarina'],['SP','São Paulo'],['SE','Sergipe'],['TO','Tocantins']];
-const mid=(v:string)=>({'0-50':25,'51-100':75,'101-150':125,'151-200':175,'200+':225}[v]||0);
-export default function Calculator(){
- const [started,setStarted]=useState(false),[step,setStep]=useState(0),[type,setType]=useState<ProjectType|null>(null);
- const [floors,setFloors]=useState<'terrea'|'sobrado'>('terrea'),[area,setArea]=useState(100),[rooms,setRooms]=useState(2),[baths,setBaths]=useState(1),[suites,setSuites]=useState(0),[facadeStyle,setFacadeStyle]=useState('Padrão');
- const [garage,setGarage]=useState('sim'),[edicula,setEdicula]=useState('nao'),[ediculaBand,setEdiculaBand]=useState('0-50'),[pool,setPool]=useState('nao'),[mezz,setMezz]=useState('nao'),[mezzBand,setMezzBand]=useState('0-50');
- const [name,setName]=useState(''),[uf,setUf]=useState('PR'),[city,setCity]=useState(''),[cities,setCities]=useState<string[]>([]),[whatsapp,setWhatsapp]=useState(''),[consent,setConsent]=useState(false),[loading,setLoading]=useState(false),[result,setResult]=useState<any>(null);
- const totalArea=useMemo(()=>area+((type!=='residential'&&mezz==='sim')?mid(mezzBand):0),[area,type,mezz,mezzBand]);
- const maxes=area<=100?[3,3,2]:area<=150?[4,4,3]:area<=200?[5,5,4]:area<=300?[6,6,5]:[8,8,6];
- async function loadCities(newUf:string){setUf(newUf);setCity('');try{const r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${newUf}/municipios?orderBy=nome`);const d=await r.json();setCities(d.map((x:any)=>x.nome))}catch{setCities([])}}
- function calc(){ if(!type)return 0; if(type==='residential')return calculateResidential({area,floors,rooms,baths,suites,ediculaArea:edicula==='sim'?mid(ediculaBand):undefined}); if(type==='commercial')return calculateCommercial(totalArea); return calculateIndustrial(totalArea)}
- async function finish(){if(!name||!city||whatsapp.replace(/\D/g,'').length<10||!consent)return alert('Preencha nome, cidade, WhatsApp com DDD e aceite o consentimento.');setLoading(true);const value=calc();const range=rangeFor(value,type!); const payload={name,uf,city,whatsapp,type,floors:type==='residential'?floors:null,area,totalArea,rooms:type==='residential'?rooms:null,baths:type==='residential'?baths:null,suites:type==='residential'?suites:null,facadeStyle,garage:type==='residential'?garage:null,edicula:type==='residential'?edicula:null,ediculaBand:type==='residential'&&edicula==='sim'?ediculaBand:null,pool:type==='residential'?pool:null,mezz:type!=='residential'?mezz:null,mezzBand:type!=='residential'&&mezz==='sim'?mezzBand:null,value,range,consent};try{await fetch('/api/simulations',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)})}catch{}setTimeout(()=>{setResult(payload);setLoading(false);setStep(99)},2400)}
- async function goWhats(){if(!result)return;try{await fetch('/api/whatsapp-click',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:result.id,whatsapp:result.whatsapp,created_at:result.created_at,name:result.name})})}catch{}const number=process.env.NEXT_PUBLIC_WHATSAPP_NUMBER||'5544999999999';const extra=type==='residential'?`\nQuartos: ${rooms}\nBanheiros: ${baths}\nSuítes: ${suites}`:`\nMezanino: ${mezz==='sim'?'Sim':'Não'}`;const msg=`Olá, Alan! Fiz uma simulação no Facilita Projeto.\n\nNome: ${name}\nCidade: ${city}/${uf}\nTipo de projeto: ${type==='residential'?'Residencial':type==='commercial'?'Comercial':'Industrial'}\nMetragem aproximada: ${totalArea} m²${extra}\nEstilo: ${facadeStyle}\n\nGostaria de conversar melhor sobre o projeto e receber uma proposta personalizada.`;window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`,'_blank')}
- function restart(keep:boolean){setType(null);setStep(0);setResult(null);setStarted(true);if(!keep){setName('');setCity('');setWhatsapp('');setConsent(false)}}
- const areaBands=type==='industrial'?[500,600,700,800,900,1000]:[100,150,200,250,300];
- if(!started)return <button className="cta" onClick={()=>setStarted(true)}>CALCULAR MEU PROJETO</button>;
- if(loading)return <div className="card loader"><h2>Calculando sua estimativa...</h2><p className="muted">Analisando as informações do seu projeto.</p><div className="loaderbar"><span/></div></div>;
- if(step===99&&result){const t=type==='residential'?'Residencial':type==='commercial'?'Comercial':'Industrial';return <div className="result"><div className="eyebrow" style={{color:'#ffd46d'}}>FACILITA PROJETO</div><h2>{type==='residential'?'Seu projeto começa a ganhar forma.':type==='commercial'?'Uma base objetiva para avançar com seu projeto.':'Pré-análise técnica inicial do seu projeto.'}</h2><div className="price">{money(result.range.min)} a {money(result.range.max)}</div><p>Estimativa inicial do projeto arquitetônico.</p><div className="summary"><div><b>Tipo</b><br/>{t}</div><div><b>Área considerada</b><br/>{totalArea} m²</div><div><b>Estilo</b><br/>{facadeStyle}</div>{type==='residential'?<><div><b>Quartos</b><br/>{rooms}</div><div><b>Banheiros</b><br/>{baths}</div><div><b>Suítes</b><br/>{suites}</div></>:<div><b>Mezanino</b><br/>{mezz==='sim'?'Sim':'Não'}</div>}</div>{pool==='sim'&&type==='residential'&&<p className="muted" style={{color:'#d7e3ef'}}>Projeto da piscina será avaliado e orçado separadamente.</p>}<p className="muted" style={{color:'#d7e3ef'}}>Esta é uma estimativa referente ao desenvolvimento do projeto arquitetônico. Projetos complementares, itens especiais, taxas, emolumentos, despesas administrativas e demais custos relacionados aos processos de aprovação não estão incluídos e serão avaliados separadamente. Condições de pagamento, parcelamento e possíveis descontos à vista poderão ser definidos posteriormente.</p><div className="actions"><button className="cta secondary" onClick={()=>{const keep=confirm('Deseja manter seus dados pessoais para realizar uma nova simulação?');restart(keep)}}>Refazer simulação</button><button className="cta" onClick={goWhats}>Quero conversar sobre meu projeto e receber uma proposta personalizada</button></div></div>}
- return <div className="card"><div className="progress"><span style={{width:`${Math.min(100,(step+1)/6*100)}%`}}/></div>{step===0&&<><h2>Qual tipo de projeto você deseja?</h2><div className="choices">{([['residential','Residencial'],['commercial','Comercial'],['industrial','Industrial']] as const).map(([k,l])=><button key={k} className={`choice ${type===k?'active':''}`} onClick={()=>setType(k)}><img src={facade} alt="Referência de fachada"/><b>{l}</b></button>)}</div></>}{step===1&&<><h2>Defina o porte do projeto</h2>{type==='residential'&&<div className="grid2"><button className={`choice ${floors==='terrea'?'active':''}`} onClick={()=>setFloors('terrea')}>Casa térrea</button><button className={`choice ${floors==='sobrado'?'active':''}`} onClick={()=>setFloors('sobrado')}>Sobrado</button></div>}<h3>Faixa de metragem</h3><div className="grid3">{areaBands.map(v=><button key={v} className={`choice ${area===v?'active':''}`} onClick={()=>setArea(v)}>{v===areaBands[0]?`Até ${v} m²`:`Até ${v} m²`}</button>)}<button className="choice" onClick={()=>{const n=Number(prompt(`Digite a metragem acima de ${type==='industrial'?1000:300} m²:`));if(n>0)setArea(n)}}>Acima de {type==='industrial'?1000:300} m²</button></div><p className="muted">A metragem é uma referência inicial e poderá ser refinada no desenvolvimento personalizado.</p></>}{step===2&&type==='residential'&&<><h2>Configuração principal</h2><div className="grid3"><div className="field"><label>Quartos</label><select value={rooms} onChange={e=>setRooms(Number(e.target.value))}>{Array.from({length:maxes[0]},(_,i)=>i+1).map(x=><option key={x}>{x}</option>)}</select></div><div className="field"><label>Banheiros</label><select value={baths} onChange={e=>setBaths(Number(e.target.value))}>{Array.from({length:maxes[1]},(_,i)=>i+1).map(x=><option key={x}>{x}</option>)}</select></div><div className="field"><label>Suítes</label><select value={suites} onChange={e=>setSuites(Number(e.target.value))}>{Array.from({length:maxes[2]+1},(_,i)=>i).map(x=><option key={x}>{x}</option>)}</select></div></div><p className="muted">Para essa metragem, limitamos combinações pouco usuais. Configurações diferentes podem ser estudadas no projeto personalizado.</p></>}{step===2&&type!=='residential'&&<><h2>Mezanino</h2><div className="grid2"><button className={`choice ${mezz==='nao'?'active':''}`} onClick={()=>setMezz('nao')}>Sem mezanino</button><button className={`choice ${mezz==='sim'?'active':''}`} onClick={()=>setMezz('sim')}>Com mezanino</button></div>{mezz==='sim'&&<div className="field" style={{marginTop:16}}><label>Faixa do mezanino</label><select value={mezzBand} onChange={e=>setMezzBand(e.target.value)}><option value="0-50">Até 50 m²</option><option value="51-100">51 a 100 m²</option><option value="101-150">101 a 150 m²</option><option value="151-200">151 a 200 m²</option><option value="200+">Acima de 200 m²</option></select></div>}</>}{step===3&&<><h2>Qual estilo mais combina com o projeto?</h2><div className="choices">{(type==='residential'?['Padrão','Moderna','Colonial']:type==='commercial'?['Comercial padrão','Moderna','Sofisticada']:['Acesso para caminhões','Industrial padrão','Industrial moderna']).map(s=><button key={s} className={`choice ${facadeStyle===s?'active':''}`} onClick={()=>setFacadeStyle(s)}><img src={facade} alt={s}/><b>{s}</b></button>)}</div><p className="muted">A escolha é apenas uma referência de estilo. A fachada final será desenvolvida de forma personalizada.</p></>}{step===4&&type==='residential'&&<><h2>Adicionais</h2><div className="grid2"><div className="field"><label>A garagem já está incluída na metragem total?</label><select value={garage} onChange={e=>setGarage(e.target.value)}><option value="sim">Sim</option><option value="nao">Não</option></select></div><div className="field"><label>Deseja incluir edícula?</label><select value={edicula} onChange={e=>setEdicula(e.target.value)}><option value="nao">Não</option><option value="sim">Sim</option></select></div>{edicula==='sim'&&<div className="field"><label>Faixa da edícula</label><select value={ediculaBand} onChange={e=>setEdiculaBand(e.target.value)}><option value="0-50">Até 50 m²</option><option value="51-100">51 a 100 m²</option><option value="101-150">101 a 150 m²</option><option value="151-200">151 a 200 m²</option><option value="200+">Acima de 200 m²</option></select></div>}<div className="field"><label>Deseja piscina?</label><select value={pool} onChange={e=>setPool(e.target.value)}><option value="nao">Não</option><option value="sim">Sim — orçamento à parte</option></select></div></div></>}{step===4&&type!=='residential'&&<><h2>Resumo técnico inicial</h2><p>Área principal: <b>{area} m²</b></p><p>Área considerada com mezanino: <b>{totalArea} m²</b></p><p className="muted">Demais ambientes, exigências locais e itens especiais serão definidos na reunião personalizada.</p></>}{step===5&&<><h2>Quase pronto</h2><p className="muted">Preencha seus dados para liberar a estimativa.</p><div className="grid2"><div className="field"><label>Nome</label><input value={name} onChange={e=>setName(e.target.value)} /></div><div className="field"><label>Estado</label><select value={uf} onChange={e=>loadCities(e.target.value)}>{states.map(([s,n])=><option value={s} key={s}>{s} — {n}</option>)}</select></div><div className="field"><label>Cidade</label><input list="cities" value={city} onChange={e=>setCity(e.target.value)} placeholder="Digite sua cidade"/><datalist id="cities">{cities.map(c=><option value={c} key={c}/>)}</datalist></div><div className="field"><label>WhatsApp (+55)</label><input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="(44) 99999-9999" inputMode="tel"/></div></div><label style={{display:'flex',gap:10,marginTop:18,alignItems:'flex-start'}}><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span className="muted">Autorizo o armazenamento dos meus dados para gerar esta estimativa. Eles serão utilizados apenas para registro da simulação e não serão usados para contato comercial sem minha iniciativa.</span></label></>}
- <div className="actions"><button className="cta secondary" disabled={step===0} onClick={()=>setStep(Math.max(0,step-1))}>Voltar</button>{step<5?<button className="cta" disabled={step===0&&!type} onClick={()=>setStep(step+1)}>Continuar</button>:<button className="cta" onClick={finish}>Gerar estimativa</button>}</div></div>
+
+import { useMemo, useState } from 'react';
+import {
+  calculateResidential,
+  calculateCommercial,
+  calculateIndustrial,
+  rangeFor,
+  money,
+  ProjectType
+} from '@/lib/pricing';
+
+const facade = '/facade-reference.jpg';
+
+const states = [
+  ['AC', 'Acre'],
+  ['AL', 'Alagoas'],
+  ['AP', 'Amapá'],
+  ['AM', 'Amazonas'],
+  ['BA', 'Bahia'],
+  ['CE', 'Ceará'],
+  ['DF', 'Distrito Federal'],
+  ['ES', 'Espírito Santo'],
+  ['GO', 'Goiás'],
+  ['MA', 'Maranhão'],
+  ['MT', 'Mato Grosso'],
+  ['MS', 'Mato Grosso do Sul'],
+  ['MG', 'Minas Gerais'],
+  ['PA', 'Pará'],
+  ['PB', 'Paraíba'],
+  ['PR', 'Paraná'],
+  ['PE', 'Pernambuco'],
+  ['PI', 'Piauí'],
+  ['RJ', 'Rio de Janeiro'],
+  ['RN', 'Rio Grande do Norte'],
+  ['RS', 'Rio Grande do Sul'],
+  ['RO', 'Rondônia'],
+  ['RR', 'Roraima'],
+  ['SC', 'Santa Catarina'],
+  ['SP', 'São Paulo'],
+  ['SE', 'Sergipe'],
+  ['TO', 'Tocantins']
+];
+
+const mid = (v: string) =>
+  ({
+    '0-50': 25,
+    '51-100': 75,
+    '101-150': 125,
+    '151-200': 175,
+    '200+': 225
+  }[v] || 0);
+
+export default function Calculator() {
+  const [started, setStarted] = useState(false);
+  const [step, setStep] = useState(0);
+  const [type, setType] = useState<ProjectType | null>(null);
+
+  const [floors, setFloors] = useState<'terrea' | 'sobrado'>('terrea');
+  const [area, setArea] = useState(100);
+  const [rooms, setRooms] = useState(2);
+  const [baths, setBaths] = useState(1);
+  const [suites, setSuites] = useState(0);
+  const [facadeStyle, setFacadeStyle] = useState('Padrão');
+
+  const [garage, setGarage] = useState('sim');
+  const [edicula, setEdicula] = useState('nao');
+  const [ediculaBand, setEdiculaBand] = useState('0-50');
+  const [pool, setPool] = useState('nao');
+
+  const [mezz, setMezz] = useState('nao');
+  const [mezzBand, setMezzBand] = useState('0-50');
+
+  const [name, setName] = useState('');
+  const [uf, setUf] = useState('PR');
+  const [city, setCity] = useState('');
+  const [cities, setCities] = useState<string[]>([]);
+  const [whatsapp, setWhatsapp] = useState('');
+  const [consent, setConsent] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const totalArea = useMemo(
+    () =>
+      area +
+      (type !== 'residential' && mezz === 'sim'
+        ? mid(mezzBand)
+        : 0),
+    [area, type, mezz, mezzBand]
+  );
+
+  const maxes =
+    area <= 100
+      ? [3, 3, 2]
+      : area <= 150
+      ? [4, 4, 3]
+      : area <= 200
+      ? [5, 5, 4]
+      : area <= 300
+      ? [6, 6, 5]
+      : [8, 8, 6];
+
+  async function loadCities(newUf: string) {
+    setUf(newUf);
+    setCity('');
+
+    try {
+      const r = await fetch(
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${newUf}/municipios?orderBy=nome`
+      );
+
+      const d = await r.json();
+      setCities(d.map((x: any) => x.nome));
+    } catch {
+      setCities([]);
+    }
+  }
+
+  function calc() {
+    if (!type) return 0;
+
+    if (type === 'residential') {
+      return calculateResidential({
+        area,
+        floors,
+        rooms,
+        baths,
+        suites,
+        ediculaArea:
+          edicula === 'sim' ? mid(ediculaBand) : undefined
+      });
+    }
+
+    if (type === 'commercial') {
+      return calculateCommercial(totalArea);
+    }
+
+    return calculateIndustrial(totalArea);
+  }
+
+  async function finish() {
+    if (
+      !name ||
+      !city ||
+      whatsapp.replace(/\D/g, '').length < 10 ||
+      !consent
+    ) {
+      return alert(
+        'Preencha nome, cidade, WhatsApp com DDD e aceite o consentimento.'
+      );
+    }
+
+    setLoading(true);
+
+    const value = calc();
+    const range = rangeFor(value, type!);
+
+    const payload = {
+      name,
+      uf,
+      city,
+      whatsapp,
+      type,
+      floors: type === 'residential' ? floors : null,
+      area,
+      totalArea,
+      rooms: type === 'residential' ? rooms : null,
+      baths: type === 'residential' ? baths : null,
+      suites: type === 'residential' ? suites : null,
+      facadeStyle,
+      garage: type === 'residential' ? garage : null,
+      edicula: type === 'residential' ? edicula : null,
+      ediculaBand:
+        type === 'residential' && edicula === 'sim'
+          ? ediculaBand
+          : null,
+      pool: type === 'residential' ? pool : null,
+      mezz: type !== 'residential' ? mezz : null,
+      mezzBand:
+        type !== 'residential' && mezz === 'sim'
+          ? mezzBand
+          : null,
+      value,
+      range,
+      consent
+    };
+
+    try {
+      await fetch('/api/simulations', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch {}
+
+    setTimeout(() => {
+      setResult(payload);
+      setLoading(false);
+      setStep(99);
+    }, 2400);
+  }
+
+  async function goWhats() {
+    if (!result) return;
+
+    try {
+      await fetch('/api/whatsapp-click', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: result.id,
+          whatsapp: result.whatsapp,
+          created_at: result.created_at,
+          name: result.name
+        })
+      });
+    } catch {}
+
+    const number =
+      process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
+      '5544999999999';
+
+    const extra =
+      type === 'residential'
+        ? `\nQuartos: ${rooms}\nBanheiros: ${baths}\nSuítes: ${suites}`
+        : `\nMezanino: ${mezz === 'sim' ? 'Sim' : 'Não'}`;
+
+    const msg = `Olá, Alan! Fiz uma simulação no Facilita Projeto.
+
+Nome: ${name}
+Cidade: ${city}/${uf}
+Tipo de projeto: ${
+      type === 'residential'
+        ? 'Residencial'
+        : type === 'commercial'
+        ? 'Comercial'
+        : 'Industrial'
+    }
+Metragem aproximada: ${totalArea} m²${extra}
+Estilo: ${facadeStyle}
+
+Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizada.`;
+
+    window.open(
+      `https://wa.me/${number}?text=${encodeURIComponent(msg)}`,
+      '_blank'
+    );
+  }
+
+  function restart(keep: boolean) {
+    setType(null);
+    setStep(0);
+    setResult(null);
+    setStarted(true);
+
+    if (!keep) {
+      setName('');
+      setCity('');
+      setWhatsapp('');
+      setConsent(false);
+    }
+  }
+
+  const areaBands =
+    type === 'industrial'
+      ? [500, 600, 700, 800, 900, 1000]
+      : [100, 150, 200, 250, 300];
+
+  if (!started) {
+    return (
+      <button
+        className="cta"
+        onClick={() => setStarted(true)}
+      >
+        CALCULAR MEU PROJETO
+      </button>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="card loader">
+        <h2>Calculando sua estimativa...</h2>
+
+        <p className="muted">
+          Analisando as informações do seu projeto.
+        </p>
+
+        <div className="loaderbar">
+          <span />
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 99 && result) {
+    const t =
+      type === 'residential'
+        ? 'Residencial'
+        : type === 'commercial'
+        ? 'Comercial'
+        : 'Industrial';
+
+    return (
+      <div className="result result-layout">
+        <div className="result-content">
+          <div
+            className="eyebrow"
+            style={{ color: '#ffd46d' }}
+          >
+            FACILITA PROJETO
+          </div>
+
+          <h2>
+            {type === 'residential'
+              ? 'Seu projeto começa a ganhar forma.'
+              : type === 'commercial'
+              ? 'Uma base objetiva para avançar com seu projeto.'
+              : 'Pré-análise técnica inicial do seu projeto.'}
+          </h2>
+
+          <div className="price">
+            {money(result.range.min)} a{' '}
+            {money(result.range.max)}
+          </div>
+
+          <p>Estimativa inicial do projeto arquitetônico.</p>
+
+          <div className="summary">
+            <div>
+              <b>Tipo</b>
+              <br />
+              {t}
+            </div>
+
+            <div>
+              <b>Área considerada</b>
+              <br />
+              {totalArea} m²
+            </div>
+
+            <div>
+              <b>Estilo</b>
+              <br />
+              {facadeStyle}
+            </div>
+
+            {type === 'residential' ? (
+              <>
+                <div>
+                  <b>Quartos</b>
+                  <br />
+                  {rooms}
+                </div>
+
+                <div>
+                  <b>Banheiros</b>
+                  <br />
+                  {baths}
+                </div>
+
+                <div>
+                  <b>Suítes</b>
+                  <br />
+                  {suites}
+                </div>
+              </>
+            ) : (
+              <div>
+                <b>Mezanino</b>
+                <br />
+                {mezz === 'sim' ? 'Sim' : 'Não'}
+              </div>
+            )}
+          </div>
+
+          {pool === 'sim' && type === 'residential' && (
+            <p
+              className="muted"
+              style={{ color: '#d7e3ef' }}
+            >
+              Projeto da piscina será avaliado e orçado
+              separadamente.
+            </p>
+          )}
+
+          <p
+            className="muted"
+            style={{ color: '#d7e3ef' }}
+          >
+            Esta é uma estimativa referente ao desenvolvimento
+            do projeto arquitetônico. Projetos complementares,
+            itens especiais, taxas, emolumentos, despesas
+            administrativas e demais custos relacionados aos
+            processos de aprovação não estão incluídos e serão
+            avaliados separadamente. Condições de pagamento,
+            parcelamento e possíveis descontos à vista poderão
+            ser definidos posteriormente.
+          </p>
+
+          <div className="actions">
+            <button
+              className="cta secondary"
+              onClick={() => {
+                const keep = confirm(
+                  'Deseja manter seus dados pessoais para realizar uma nova simulação?'
+                );
+
+                restart(keep);
+              }}
+            >
+              Refazer simulação
+            </button>
+
+            <button
+              className="cta"
+              onClick={goWhats}
+            >
+              Quero conversar sobre meu projeto e receber uma
+              proposta personalizada
+            </button>
+          </div>
+        </div>
+
+        <div className="result-figure">
+          <img
+            src="/alan-result-cartoon.png"
+            alt="Alan Oliveira apontando para o contato"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <div className="progress">
+        <span
+          style={{
+            width: `${Math.min(
+              100,
+              ((step + 1) / 6) * 100
+            )}%`
+          }}
+        />
+      </div>
+
+      {step === 0 && (
+        <>
+          <h2>Qual tipo de projeto você deseja?</h2>
+
+          <div className="choices">
+            {(
+              [
+                ['residential', 'Residencial'],
+                ['commercial', 'Comercial'],
+                ['industrial', 'Industrial']
+              ] as const
+            ).map(([k, l]) => (
+              <button
+                key={k}
+                className={`choice ${
+                  type === k ? 'active' : ''
+                }`}
+                onClick={() => setType(k)}
+              >
+                <img
+                  src={facade}
+                  alt="Referência de fachada"
+                />
+                <b>{l}</b>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {step === 1 && (
+        <>
+          <h2>Defina o porte do projeto</h2>
+
+          {type === 'residential' && (
+            <div className="grid2">
+              <button
+                className={`choice ${
+                  floors === 'terrea' ? 'active' : ''
+                }`}
+                onClick={() => setFloors('terrea')}
+              >
+                Casa térrea
+              </button>
+
+              <button
+                className={`choice ${
+                  floors === 'sobrado' ? 'active' : ''
+                }`}
+                onClick={() => setFloors('sobrado')}
+              >
+                Sobrado
+              </button>
+            </div>
+          )}
+
+          <h3>Faixa de metragem</h3>
+
+          <div className="grid3">
+            {areaBands.map(v => (
+              <button
+                key={v}
+                className={`choice ${
+                  area === v ? 'active' : ''
+                }`}
+                onClick={() => setArea(v)}
+              >
+                Até {v} m²
+              </button>
+            ))}
+
+            <button
+              className="choice"
+              onClick={() => {
+                const n = Number(
+                  prompt(
+                    `Digite a metragem acima de ${
+                      type === 'industrial' ? 1000 : 300
+                    } m²:`
+                  )
+                );
+
+                if (n > 0) setArea(n);
+              }}
+            >
+              Acima de{' '}
+              {type === 'industrial' ? 1000 : 300} m²
+            </button>
+          </div>
+
+          <p className="muted">
+            A metragem é uma referência inicial e poderá ser
+            refinada no desenvolvimento personalizado.
+          </p>
+        </>
+      )}
+
+      {step === 2 && type === 'residential' && (
+        <>
+          <h2>Configuração principal</h2>
+
+          <div className="grid3">
+            <div className="field">
+              <label>Quartos</label>
+
+              <select
+                value={rooms}
+                onChange={e =>
+                  setRooms(Number(e.target.value))
+                }
+              >
+                {Array.from(
+                  { length: maxes[0] },
+                  (_, i) => i + 1
+                ).map(x => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>Banheiros</label>
+
+              <select
+                value={baths}
+                onChange={e =>
+                  setBaths(Number(e.target.value))
+                }
+              >
+                {Array.from(
+                  { length: maxes[1] },
+                  (_, i) => i + 1
+                ).map(x => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>Suítes</label>
+
+              <select
+                value={suites}
+                onChange={e =>
+                  setSuites(Number(e.target.value))
+                }
+              >
+                {Array.from(
+                  { length: maxes[2] + 1 },
+                  (_, i) => i
+                ).map(x => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <p className="muted">
+            Para essa metragem, limitamos combinações pouco
+            usuais. Configurações diferentes podem ser estudadas
+            no projeto personalizado.
+          </p>
+        </>
+      )}
+
+      {step === 2 && type !== 'residential' && (
+        <>
+          <h2>Mezanino</h2>
+
+          <div className="grid2">
+            <button
+              className={`choice ${
+                mezz === 'nao' ? 'active' : ''
+              }`}
+              onClick={() => setMezz('nao')}
+            >
+              Sem mezanino
+            </button>
+
+            <button
+              className={`choice ${
+                mezz === 'sim' ? 'active' : ''
+              }`}
+              onClick={() => setMezz('sim')}
+            >
+              Com mezanino
+            </button>
+          </div>
+
+          {mezz === 'sim' && (
+            <div
+              className="field"
+              style={{ marginTop: 16 }}
+            >
+              <label>Faixa do mezanino</label>
+
+              <select
+                value={mezzBand}
+                onChange={e =>
+                  setMezzBand(e.target.value)
+                }
+              >
+                <option value="0-50">
+                  Até 50 m²
+                </option>
+                <option value="51-100">
+                  51 a 100 m²
+                </option>
+                <option value="101-150">
+                  101 a 150 m²
+                </option>
+                <option value="151-200">
+                  151 a 200 m²
+                </option>
+                <option value="200+">
+                  Acima de 200 m²
+                </option>
+              </select>
+            </div>
+          )}
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <h2>Qual estilo mais combina com o projeto?</h2>
+
+          <div className="choices">
+            {(
+              type === 'residential'
+                ? ['Padrão', 'Moderna', 'Colonial']
+                : type === 'commercial'
+                ? [
+                    'Comercial padrão',
+                    'Moderna',
+                    'Sofisticada'
+                  ]
+                : [
+                    'Acesso para caminhões',
+                    'Industrial padrão',
+                    'Industrial moderna'
+                  ]
+            ).map(s => (
+              <button
+                key={s}
+                className={`choice ${
+                  facadeStyle === s ? 'active' : ''
+                }`}
+                onClick={() => setFacadeStyle(s)}
+              >
+                <img src={facade} alt={s} />
+                <b>{s}</b>
+              </button>
+            ))}
+          </div>
+
+          <p className="muted">
+            A escolha é apenas uma referência de estilo. A
+            fachada final será desenvolvida de forma
+            personalizada.
+          </p>
+        </>
+      )}
+
+      {step === 4 && type === 'residential' && (
+        <>
+          <h2>Adicionais</h2>
+
+          <div className="grid2">
+            <div className="field">
+              <label>
+                A garagem já está incluída na metragem total?
+              </label>
+
+              <select
+                value={garage}
+                onChange={e =>
+                  setGarage(e.target.value)
+                }
+              >
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+              </select>
+            </div>
+
+            <div className="field">
+              <label>Deseja incluir edícula?</label>
+
+              <select
+                value={edicula}
+                onChange={e =>
+                  setEdicula(e.target.value)
+                }
+              >
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+              </select>
+            </div>
+
+            {edicula === 'sim' && (
+              <div className="field">
+                <label>Faixa da edícula</label>
+
+                <select
+                  value={ediculaBand}
+                  onChange={e =>
+                    setEdiculaBand(e.target.value)
+                  }
+                >
+                  <option value="0-50">
+                    Até 50 m²
+                  </option>
+                  <option value="51-100">
+                    51 a 100 m²
+                  </option>
+                  <option value="101-150">
+                    101 a 150 m²
+                  </option>
+                  <option value="151-200">
+                    151 a 200 m²
+                  </option>
+                  <option value="200+">
+                    Acima de 200 m²
+                  </option>
+                </select>
+              </div>
+            )}
+
+            <div className="field">
+              <label>Deseja piscina?</label>
+
+              <select
+                value={pool}
+                onChange={e =>
+                  setPool(e.target.value)
+                }
+              >
+                <option value="nao">Não</option>
+                <option value="sim">
+                  Sim — orçamento à parte
+                </option>
+              </select>
+            </div>
+          </div>
+        </>
+      )}
+
+      {step === 4 && type !== 'residential' && (
+        <>
+          <h2>Resumo técnico inicial</h2>
+
+          <p>
+            Área principal: <b>{area} m²</b>
+          </p>
+
+          <p>
+            Área considerada com mezanino:{' '}
+            <b>{totalArea} m²</b>
+          </p>
+
+          <p className="muted">
+            Demais ambientes, exigências locais e itens especiais
+            serão definidos na reunião personalizada.
+          </p>
+        </>
+      )}
+
+      {step === 5 && (
+        <>
+          <h2>Quase pronto</h2>
+
+          <p className="muted">
+            Preencha seus dados para liberar a estimativa.
+          </p>
+
+          <div className="grid2">
+            <div className="field">
+              <label>Nome</label>
+
+              <input
+                value={name}
+                onChange={e =>
+                  setName(e.target.value)
+                }
+              />
+            </div>
+
+            <div className="field">
+              <label>Estado</label>
+
+              <select
+                value={uf}
+                onChange={e =>
+                  loadCities(e.target.value)
+                }
+              >
+                {states.map(([s, n]) => (
+                  <option
+                    value={s}
+                    key={s}
+                  >
+                    {s} — {n}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>Cidade</label>
+
+              <input
+                list="cities"
+                value={city}
+                onChange={e =>
+                  setCity(e.target.value)
+                }
+                placeholder="Digite sua cidade"
+              />
+
+              <datalist id="cities">
+                {cities.map(c => (
+                  <option
+                    value={c}
+                    key={c}
+                  />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="field">
+              <label>WhatsApp (+55)</label>
+
+              <input
+                value={whatsapp}
+                onChange={e =>
+                  setWhatsapp(e.target.value)
+                }
+                placeholder="(44) 99999-9999"
+                inputMode="tel"
+              />
+            </div>
+          </div>
+
+          <label
+            style={{
+              display: 'flex',
+              gap: 10,
+              marginTop: 18,
+              alignItems: 'flex-start'
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={e =>
+                setConsent(e.target.checked)
+              }
+            />
+
+            <span className="muted">
+              Autorizo o armazenamento dos meus dados para gerar
+              esta estimativa. Eles serão utilizados apenas para
+              registro da simulação e não serão usados para
+              contato comercial sem minha iniciativa.
+            </span>
+          </label>
+        </>
+      )}
+
+      <div className="actions">
+        <button
+          className="cta secondary"
+          disabled={step === 0}
+          onClick={() =>
+            setStep(Math.max(0, step - 1))
+          }
+        >
+          Voltar
+        </button>
+
+        {step < 5 ? (
+          <button
+            className="cta"
+            disabled={step === 0 && !type}
+            onClick={() => setStep(step + 1)}
+          >
+            Continuar
+          </button>
+        ) : (
+          <button
+            className="cta"
+            onClick={finish}
+          >
+            Gerar estimativa
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
