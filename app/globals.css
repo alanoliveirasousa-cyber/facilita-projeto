@@ -247,7 +247,8 @@ img {
   box-shadow: 0 0 0 2px rgba(241, 181, 28, 0.28);
 }
 
-/* IMAGENS DAS OPÇÕES */
+/* IMAGENS DAS OPÇÕES
+   Todas ocupam exatamente a mesma área visual */
 
 .choice img {
   width: 100%;
@@ -255,7 +256,7 @@ img {
   display: block;
   margin-bottom: 13px;
 
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 
   background: #ffffff;
@@ -468,6 +469,7 @@ img {
 
   .choice img {
     height: 210px;
+    object-fit: cover;
   }
 
   .result-layout {
@@ -547,7 +549,7 @@ img {
 
   .choice img {
     height: 185px;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     background: #ffffff;
   }
@@ -614,6 +616,7 @@ img {
 
   .choice img {
     height: 165px;
+    object-fit: cover;
   }
 
   .summary {
