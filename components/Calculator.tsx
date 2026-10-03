@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   calculateResidential,
   calculateCommercial,
@@ -100,6 +100,30 @@ function industrialFacade(style: string) {
   return '/industrial-padrao.png';
 }
 
+function formatWhatsapp(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(
+      2,
+      6
+    )}-${digits.slice(6)}`;
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(
+    2,
+    7
+  )}-${digits.slice(7)}`;
+}
+
 export default function Calculator({
   onStartChange
 }: {
@@ -130,6 +154,8 @@ export default function Calculator({
   const [uf, setUf] = useState('PR');
   const [city, setCity] = useState('');
   const [cities, setCities] = useState<string[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+
   const [whatsapp, setWhatsapp] = useState('');
   const [consent, setConsent] = useState(false);
 
@@ -159,6 +185,7 @@ export default function Calculator({
   async function loadCities(newUf: string) {
     setUf(newUf);
     setCity('');
+    setCitiesLoading(true);
 
     try {
       const r = await fetch(
@@ -166,11 +193,20 @@ export default function Calculator({
       );
 
       const d = await r.json();
-      setCities(d.map((x: any) => x.nome));
+
+      setCities(
+        d.map((x: any) => x.nome)
+      );
     } catch {
       setCities([]);
+    } finally {
+      setCitiesLoading(false);
     }
   }
+
+  useEffect(() => {
+    loadCities('PR');
+  }, []);
 
   function calc() {
     if (!type) return 0;
@@ -1160,6 +1196,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
                 onChange={e =>
                   setName(e.target.value)
                 }
+                placeholder="Digite seu nome"
               />
             </div>
 
@@ -1186,35 +1223,43 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             <div className="field">
               <label>Cidade</label>
 
-              <input
-                list="cities"
+              <select
                 value={city}
                 onChange={e =>
                   setCity(e.target.value)
                 }
-                placeholder="Digite sua cidade"
-              />
+                disabled={citiesLoading}
+              >
+                <option value="">
+                  {citiesLoading
+                    ? 'Carregando cidades...'
+                    : 'Selecione sua cidade'}
+                </option>
 
-              <datalist id="cities">
                 {cities.map(c => (
                   <option
                     value={c}
                     key={c}
-                  />
+                  >
+                    {c}
+                  </option>
                 ))}
-              </datalist>
+              </select>
             </div>
 
             <div className="field">
-              <label>WhatsApp (+55)</label>
+              <label>WhatsApp com DDD</label>
 
               <input
                 value={whatsapp}
                 onChange={e =>
-                  setWhatsapp(e.target.value)
+                  setWhatsapp(
+                    formatWhatsapp(e.target.value)
+                  )
                 }
                 placeholder="(44) 99999-9999"
-                inputMode="tel"
+                inputMode="numeric"
+                maxLength={15}
               />
             </div>
           </div>
