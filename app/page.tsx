@@ -66,12 +66,42 @@ export default function Home() {
       </section>
 
       <a
-        className="instagram"
         href="https://www.instagram.com/alanoliveirasousa/"
         target="_blank"
         rel="noreferrer"
+        aria-label="Siga Alan Oliveira no Instagram"
+        style={{
+          position: 'fixed',
+          right: 18,
+          bottom: 18,
+          zIndex: 30,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          padding: '12px 17px',
+          minHeight: 48,
+          borderRadius: 999,
+          background: '#ffffff',
+          color: '#0d2f52',
+          fontSize: 14,
+          fontWeight: 800,
+          textDecoration: 'none',
+          boxShadow: '0 10px 30px rgba(13,47,82,.20)'
+        }}
       >
-        Instagram ↗
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7Zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10Zm.5 1.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5ZM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z"
+          />
+        </svg>
+
+        <span>Siga no Instagram</span>
       </a>
 
       <footer
