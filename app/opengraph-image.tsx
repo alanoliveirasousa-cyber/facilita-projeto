@@ -16,18 +16,31 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  // Carrega a versão otimizada da sua logo,
-  // que já está na pasta public do GitHub.
-  const logoBuffer = await readFile(
-    join(
-      process.cwd(),
-      'public',
-      'alan-logo.png.png'
-    )
-  );
+  // Procura primeiro a logo otimizada.
+  // Se não encontrar, utiliza a logo original.
 
-  const logoSrc =
-    `data:image/png;base64,${logoBuffer.toString('base64')}`;
+  const arquivos = [
+    'alan-logo-otimizada.png',
+    'alan-logo.png.png',
+    'alan-logo.png',
+  ];
+
+  let logoSrc: string | null = null;
+
+  for (const arquivo of arquivos) {
+    try {
+      const logoBuffer = await readFile(
+        join(process.cwd(), 'public', arquivo)
+      );
+
+      logoSrc =
+        `data:image/png;base64,${logoBuffer.toString('base64')}`;
+
+      break;
+    } catch {
+      // Tenta o próximo arquivo da lista.
+    }
+  }
 
   return new ImageResponse(
     (
@@ -42,17 +55,47 @@ export default async function OpenGraphImage() {
           overflow: 'hidden',
         }}
       >
-        <img
-          src={logoSrc}
-          width={1200}
-          height={1200}
-          alt="Alan Oliveira Engenharia Civil"
-          style={{
-            width: 1200,
-            height: 1200,
-            objectFit: 'contain',
-          }}
-        />
+        {logoSrc ? (
+          <img
+            src={logoSrc}
+            width={1200}
+            height={1200}
+            alt="Alan Oliveira Engenharia Civil"
+            style={{
+              width: 1200,
+              height: 1200,
+              objectFit: 'contain',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#132744',
+            }}
+          >
+            <span
+              style={{
+                fontSize: 80,
+                fontWeight: 900,
+              }}
+            >
+              ALAN OLIVEIRA
+            </span>
+
+            <span
+              style={{
+                fontSize: 42,
+                marginTop: 20,
+              }}
+            >
+              ENGENHARIA CIVIL
+            </span>
+          </div>
+        )}
       </div>
     ),
     {
