@@ -1,4 +1,3 @@
-
 import { ImageResponse } from 'next/og';
 
 export const alt =
@@ -11,7 +10,14 @@ export const size = {
 
 export const contentType = 'image/png';
 
+const siteUrl = 'https://facilita-projeto.vercel.app';
+
 export default function OpenGraphImage() {
+  const logoUrl = new URL(
+    '/alan-logo.png',
+    siteUrl
+  ).toString();
+
   return new ImageResponse(
     (
       <div
@@ -19,214 +25,271 @@ export default function OpenGraphImage() {
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
           justifyContent: 'space-between',
-          padding: '62px 72px',
-          backgroundColor: '#192F53',
+          alignItems: 'stretch',
+          padding: '52px 58px',
+          backgroundColor: '#1D335B',
           color: '#FFFFFF',
           fontFamily: 'Arial, sans-serif',
           position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        {/* ELEMENTOS DECORATIVOS */}
+        {/* FUNDO DECORATIVO */}
         <div
           style={{
             position: 'absolute',
-            width: 390,
-            height: 390,
-            borderRadius: '50%',
-            backgroundColor: '#253F68',
-            right: -110,
-            top: 85,
+            inset: 0,
             display: 'flex',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'absolute',
-            width: 230,
-            height: 230,
-            borderRadius: '50%',
-            border: '3px solid #496285',
-            right: 115,
-            top: 260,
-            display: 'flex',
-          }}
-        />
-
-        {/* CABEÇALHO */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: '100%',
-            zIndex: 2,
+            overflow: 'hidden',
           }}
         >
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 30,
-                fontWeight: 900,
-                letterSpacing: 1,
-                color: '#F4BE00',
-              }}
-            >
-              FACILITA PROJETO
-            </div>
-
-            <div
-              style={{
-                fontSize: 16,
-                color: '#D7E3EF',
-                marginTop: 7,
-              }}
-            >
-              por Alan Oliveira
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              borderRadius: 30,
-              padding: '12px 20px',
-              border: '1px solid #5D7496',
-              backgroundColor: '#253F68',
-              fontSize: 17,
-              color: '#FFFFFF',
-            }}
-          >
-            ENGENHARIA CIVIL
-          </div>
-        </div>
-
-        {/* TEXTO PRINCIPAL */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 2,
-            maxWidth: 950,
-            marginTop: 24,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 66,
-              fontWeight: 900,
-              color: '#FFFFFF',
-              letterSpacing: -2,
-              lineHeight: 1.1,
-              display: 'flex',
-            }}
-          >
-            Vai construir?
-          </div>
-
-          <div
-            style={{
-              fontSize: 47,
-              fontWeight: 800,
-              lineHeight: 1.15,
-              color: '#F4BE00',
-              marginTop: 16,
-              maxWidth: 950,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <span>Descubra quanto pode custar</span>
-            <span>o seu projeto.</span>
-          </div>
-
-          <div
-            style={{
-              fontSize: 23,
-              color: '#E8EEF7',
-              marginTop: 25,
-              display: 'flex',
-            }}
-          >
-            Simulação online, gratuita e sem compromisso.
-          </div>
-        </div>
-
-        {/* RODAPÉ */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            zIndex: 2,
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              height: 2,
-              backgroundColor: '#496285',
-              marginBottom: 23,
+              position: 'absolute',
+              right: -120,
+              top: 90,
+              width: 380,
+              height: 380,
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255,255,255,0.06)',
               display: 'flex',
             }}
           />
+          <div
+            style={{
+              position: 'absolute',
+              right: 120,
+              top: 260,
+              width: 210,
+              height: 210,
+              borderRadius: '50%',
+              border: '3px solid rgba(255,255,255,0.18)',
+              display: 'flex',
+            }}
+          />
+        </div>
 
+        {/* COLUNA ESQUERDA */}
+        <div
+          style={{
+            width: '62%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            zIndex: 2,
+            paddingRight: 20,
+          }}
+        >
+          {/* CABEÇALHO */}
           <div
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
+              flexDirection: 'column',
             }}
           >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                width: '100%',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 32,
+                    fontWeight: 900,
+                    color: '#F4BE00',
+                    letterSpacing: 1,
+                  }}
+                >
+                  FACILITA PROJETO
+                </span>
+
+                <span
+                  style={{
+                    fontSize: 16,
+                    color: '#D7E3EF',
+                    marginTop: 8,
+                  }}
+                >
+                  por Alan Oliveira
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  padding: '10px 18px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255,255,255,0.20)',
+                  backgroundColor:
+                    'rgba(255,255,255,0.05)',
+                  fontSize: 16,
+                  color: '#FFFFFF',
+                }}
+              >
+                ENGENHARIA CIVIL
+              </div>
+            </div>
+
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
+                marginTop: 58,
               }}
             >
               <span
                 style={{
-                  fontSize: 19,
-                  fontWeight: 700,
+                  fontSize: 64,
+                  lineHeight: 1.08,
+                  fontWeight: 900,
+                  letterSpacing: -2,
                   color: '#FFFFFF',
                 }}
               >
-                Alan Oliveira
+                Vai construir?
               </span>
 
               <span
                 style={{
-                  fontSize: 15,
-                  color: '#D7E3EF',
-                  marginTop: 5,
+                  fontSize: 48,
+                  lineHeight: 1.15,
+                  fontWeight: 800,
+                  color: '#F4BE00',
+                  marginTop: 18,
+                  maxWidth: 600,
                 }}
               >
-                Engenheiro Civil
+                Descubra quanto pode custar
+                o seu projeto.
+              </span>
+
+              <span
+                style={{
+                  fontSize: 23,
+                  lineHeight: 1.5,
+                  color: '#E8EEF7',
+                  marginTop: 26,
+                }}
+              >
+                Simulação online, gratuita e sem compromisso.
               </span>
             </div>
+          </div>
+
+          {/* RODAPÉ */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div
+              style={{
+                width: '100%',
+                height: 2,
+                backgroundColor: 'rgba(255,255,255,0.18)',
+                marginBottom: 22,
+                display: 'flex',
+              }}
+            />
 
             <div
               style={{
                 display: 'flex',
-                padding: '16px 24px',
-                backgroundColor: '#F4BE00',
-                borderRadius: 12,
-                color: '#132744',
-                fontWeight: 900,
-                fontSize: 18,
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
               }}
             >
-              SIMULE GRATUITAMENTE
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                  }}
+                >
+                  Alan Oliveira
+                </span>
+
+                <span
+                  style={{
+                    fontSize: 15,
+                    color: '#D7E3EF',
+                    marginTop: 4,
+                  }}
+                >
+                  Engenheiro Civil
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  padding: '15px 24px',
+                  backgroundColor: '#F4BE00',
+                  borderRadius: 12,
+                  color: '#132744',
+                  fontWeight: 900,
+                  fontSize: 18,
+                }}
+              >
+                SIMULE GRATUITAMENTE
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* COLUNA DIREITA COM A LOGO */}
+        <div
+          style={{
+            width: '34%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              maxHeight: 470,
+              borderRadius: 26,
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '34px',
+              boxShadow:
+                '0 18px 40px rgba(0,0,0,0.18)',
+            }}
+          >
+            <img
+              src={logoUrl}
+              alt="Logo Alan Oliveira Engenharia Civil"
+              style={{
+                width: '100%',
+                maxWidth: 360,
+                height: 'auto',
+                objectFit: 'contain',
+              }}
+            />
           </div>
         </div>
       </div>
