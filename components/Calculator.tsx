@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   calculateResidential,
   calculateCommercial,
@@ -45,7 +46,6 @@ function residentialFacade(
   style: string
 ) {
   const model = floors === 'terrea' ? 'terrea' : 'sobrado';
-
   const suffix =
     style === 'Moderna'
       ? 'moderna'
@@ -140,12 +140,15 @@ const areaOptions = [
 function AreaBandSelect({
   value,
   onChange,
+  id,
 }: {
   value: string;
   onChange: (value: string) => void;
+  id?: string;
 }) {
   return (
     <select
+      id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -165,6 +168,100 @@ type SimulationResult = {
     max: number;
   };
 };
+
+// CORES DA TELA DE RESULTADO
+const resultColors = {
+  white: '#FFFFFF',
+  text: '#E8EEF7',
+  secondary: '#D7E3EF',
+  green: '#72D9AB',
+  yellow: '#FFD46D',
+};
+
+const summaryStyle: CSSProperties = {
+  padding: '14px 16px',
+  borderRadius: 12,
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  minWidth: 0,
+  color: resultColors.white,
+};
+
+const summaryLabel: CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  color: resultColors.secondary,
+  marginBottom: 6,
+};
+
+const summaryValue: CSSProperties = {
+  display: 'block',
+  fontSize: 16,
+  fontWeight: 700,
+  color: resultColors.white,
+  overflowWrap: 'anywhere',
+};
+
+function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div style={summaryStyle}>
+      <span style={summaryLabel}>
+        {label}
+      </span>
+      <strong style={summaryValue}>
+        {value}
+      </strong>
+    </div>
+  );
+}
+
+function ResultInformation({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 11,
+        marginBottom: 15,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          color: resultColors.green,
+          fontSize: 19,
+          fontWeight: 800,
+          lineHeight: 1.4,
+          flexShrink: 0,
+        }}
+      >
+        ✓
+      </span>
+
+      <p
+        style={{
+          color: resultColors.text,
+          fontSize: 14,
+          lineHeight: 1.8,
+          margin: 0,
+          opacity: 1,
+        }}
+      >
+        {children}
+      </p>
+    </div>
+  );
+}
 
 export default function Calculator({
   onStartChange,
@@ -286,7 +383,7 @@ export default function Calculator({
     }
   }
 
-  // Mantém as funções de cálculo do projeto original.
+  // FÓRMULAS ORIGINAIS PRESERVADAS
   function calc() {
     if (!type) return 0;
 
@@ -345,7 +442,6 @@ export default function Calculator({
       ? 'Comercial'
       : 'Industrial';
 
-  // Etapa 3: mensagem de WhatsApp personalizada.
   function goWhats() {
     if (!result) return;
 
@@ -474,7 +570,7 @@ export default function Calculator({
           image: industrialFacade(style),
         }));
 
-  // Tela inicial da calculadora.
+  // BOTÃO INICIAL
   if (!started) {
     return (
       <button
@@ -490,7 +586,7 @@ export default function Calculator({
     );
   }
 
-  // Tela de carregamento.
+  // CARREGAMENTO
   if (loading) {
     return (
       <div className="card loader">
@@ -507,36 +603,20 @@ export default function Calculator({
     );
   }
 
-  // ETAPA 3: NOVA TELA DE RESULTADO.
+  // TELA DE RESULTADO COM CONTRASTE CORRIGIDO
   if (step === 99 && result) {
-    const summaryStyle: React.CSSProperties = {
-      padding: '14px 16px',
-      borderRadius: 12,
-      background: 'rgba(255,255,255,0.08)',
-      border: '1px solid rgba(255,255,255,0.12)',
-      minWidth: 0,
-    };
-
-    const summaryLabel: React.CSSProperties = {
-      display: 'block',
-      fontSize: 12,
-      opacity: 0.8,
-      marginBottom: 6,
-    };
-
-    const summaryValue: React.CSSProperties = {
-      display: 'block',
-      fontSize: 16,
-      fontWeight: 700,
-      overflowWrap: 'anywhere',
-    };
-
     return (
-      <div className="result result-layout">
-        <div className="result-content">
+      <div
+        className="result result-layout"
+        style={{ color: resultColors.white }}
+      >
+        <div
+          className="result-content"
+          style={{ color: resultColors.white }}
+        >
           <div
             className="eyebrow"
-            style={{ color: '#ffd46d' }}
+            style={{ color: resultColors.yellow }}
           >
             FACILITA PROJETO
           </div>
@@ -554,18 +634,23 @@ export default function Calculator({
               marginBottom: 16,
               fontSize: 13,
               fontWeight: 700,
+              color: resultColors.white,
             }}
           >
             ✓ Simulação concluída
           </div>
 
-          <h2>Sua estimativa está pronta!</h2>
+          <h2 style={{ color: resultColors.white }}>
+            Sua estimativa está pronta!
+          </h2>
 
           <p
             style={{
+              color: resultColors.text,
               fontSize: 16,
               lineHeight: 1.7,
               marginBottom: 20,
+              opacity: 1,
             }}
           >
             {name}, agora você já tem uma estimativa
@@ -580,6 +665,7 @@ export default function Calculator({
               background: 'rgba(255,255,255,0.10)',
               border: '1px solid rgba(255,255,255,0.2)',
               marginBottom: 24,
+              color: resultColors.white,
             }}
           >
             <div
@@ -587,7 +673,7 @@ export default function Calculator({
                 fontSize: 13,
                 fontWeight: 700,
                 marginBottom: 12,
-                opacity: 0.9,
+                color: resultColors.secondary,
               }}
             >
               ESTIMATIVA DO PROJETO ARQUITETÔNICO
@@ -598,6 +684,7 @@ export default function Calculator({
               style={{
                 margin: '8px 0 16px',
                 overflowWrap: 'anywhere',
+                color: resultColors.white,
               }}
             >
               {money(result.range.min)}
@@ -607,9 +694,11 @@ export default function Calculator({
 
             <p
               style={{
+                color: resultColors.text,
                 fontSize: 13,
                 lineHeight: 1.6,
                 margin: 0,
+                opacity: 1,
               }}
             >
               Faixa estimada de honorários para o
@@ -621,6 +710,7 @@ export default function Calculator({
 
           <h3
             style={{
+              color: resultColors.white,
               marginBottom: 14,
               fontSize: 20,
             }}
@@ -637,125 +727,83 @@ export default function Calculator({
               marginBottom: 24,
             }}
           >
-            <div style={summaryStyle}>
-              <span style={summaryLabel}>
-                Tipo de construção
-              </span>
-              <strong style={summaryValue}>
-                {projectTypeName}
-              </strong>
-            </div>
+            <SummaryCard
+              label="Tipo de construção"
+              value={projectTypeName}
+            />
 
-            <div style={summaryStyle}>
-              <span style={summaryLabel}>
-                Área considerada
-              </span>
-              <strong style={summaryValue}>
-                {totalArea} m²
-              </strong>
-            </div>
+            <SummaryCard
+              label="Área considerada"
+              value={`${totalArea} m²`}
+            />
 
-            <div style={summaryStyle}>
-              <span style={summaryLabel}>
-                Localização
-              </span>
-              <strong style={summaryValue}>
-                {city}/{uf}
-              </strong>
-            </div>
+            <SummaryCard
+              label="Localização"
+              value={`${city}/${uf}`}
+            />
 
-            <div style={summaryStyle}>
-              <span style={summaryLabel}>
-                Estilo
-              </span>
-              <strong style={summaryValue}>
-                {facadeStyle}
-              </strong>
-            </div>
+            <SummaryCard
+              label="Estilo"
+              value={facadeStyle}
+            />
 
             {type === 'residential' ? (
               <>
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Modelo
-                  </span>
-                  <strong style={summaryValue}>
-                    {floors === 'terrea'
+                <SummaryCard
+                  label="Modelo"
+                  value={
+                    floors === 'terrea'
                       ? 'Casa térrea'
-                      : 'Sobrado'}
-                  </strong>
-                </div>
+                      : 'Sobrado'
+                  }
+                />
 
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Quartos
-                  </span>
-                  <strong style={summaryValue}>
-                    {rooms}
-                  </strong>
-                </div>
+                <SummaryCard
+                  label="Quartos"
+                  value={rooms}
+                />
 
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Banheiros
-                  </span>
-                  <strong style={summaryValue}>
-                    {baths}
-                  </strong>
-                </div>
+                <SummaryCard
+                  label="Banheiros"
+                  value={baths}
+                />
 
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Suítes
-                  </span>
-                  <strong style={summaryValue}>
-                    {suites}
-                  </strong>
-                </div>
+                <SummaryCard
+                  label="Suítes"
+                  value={suites}
+                />
 
                 {edicula === 'sim' && (
-                  <div style={summaryStyle}>
-                    <span style={summaryLabel}>
-                      Edícula
-                    </span>
-                    <strong style={summaryValue}>
-                      {ediculaBand} m²
-                    </strong>
-                  </div>
+                  <SummaryCard
+                    label="Edícula"
+                    value={`${ediculaBand} m²`}
+                  />
                 )}
 
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Piscina
-                  </span>
-                  <strong style={summaryValue}>
-                    {pool === 'sim'
+                <SummaryCard
+                  label="Piscina"
+                  value={
+                    pool === 'sim'
                       ? 'Sim, orçamento separado'
-                      : 'Não'}
-                  </strong>
-                </div>
+                      : 'Não'
+                  }
+                />
               </>
             ) : (
               <>
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Área principal
-                  </span>
-                  <strong style={summaryValue}>
-                    {area} m²
-                  </strong>
-                </div>
+                <SummaryCard
+                  label="Área principal"
+                  value={`${area} m²`}
+                />
 
-                <div style={summaryStyle}>
-                  <span style={summaryLabel}>
-                    Mezanino
-                  </span>
-                  <strong style={summaryValue}>
-                    {mezz === 'sim'
+                <SummaryCard
+                  label="Mezanino"
+                  value={
+                    mezz === 'sim'
                       ? `Sim — ${mezzBand} m²`
-                      : 'Não'}
-                  </strong>
-                </div>
+                      : 'Não'
+                  }
+                />
               </>
             )}
           </div>
@@ -765,82 +813,55 @@ export default function Calculator({
               padding: 18,
               borderRadius: 14,
               background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.18)',
               marginBottom: 20,
+              color: resultColors.white,
             }}
           >
             <h3
               style={{
+                color: resultColors.white,
                 fontSize: 18,
                 marginTop: 0,
-                marginBottom: 12,
+                marginBottom: 18,
               }}
             >
               O que você precisa saber sobre esta estimativa
             </h3>
 
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                marginBottom: 12,
-              }}
-            >
-              ✓ O valor apresentado é uma estimativa
+            <ResultInformation>
+              O valor apresentado é uma estimativa
               inicial para o desenvolvimento do
               projeto arquitetônico.
-            </p>
+            </ResultInformation>
 
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                marginBottom: 12,
-              }}
-            >
-              ✓ Os detalhes e as necessidades
+            <ResultInformation>
+              Os detalhes e as necessidades
               específicas da sua construção serão
               analisados antes do orçamento definitivo.
-            </p>
+            </ResultInformation>
 
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                marginBottom: 12,
-              }}
-            >
-              ✓ Projetos complementares, itens
+            <ResultInformation>
+              Projetos complementares, itens
               especiais, taxas, emolumentos,
               despesas administrativas e custos
               relacionados às aprovações não estão
               incluídos nesta estimativa e serão
               avaliados separadamente.
-            </p>
+            </ResultInformation>
 
-            {type === 'residential' && pool === 'sim' && (
-              <p
-                style={{
-                  fontSize: 14,
-                  lineHeight: 1.8,
-                  marginBottom: 12,
-                }}
-              >
-                ✓ O projeto da piscina será
-                avaliado e orçado separadamente.
-              </p>
-            )}
+            {type === 'residential' &&
+              pool === 'sim' && (
+                <ResultInformation>
+                  O projeto da piscina será
+                  avaliado e orçado separadamente.
+                </ResultInformation>
+              )}
 
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                marginBottom: 0,
-              }}
-            >
-              ✓ Esta estimativa não representa o
+            <ResultInformation>
+              Esta estimativa não representa o
               custo total de execução da obra.
-            </p>
+            </ResultInformation>
           </div>
 
           <div
@@ -850,10 +871,12 @@ export default function Calculator({
               background: 'rgba(255,193,7,0.10)',
               border: '1px solid rgba(255,212,109,0.35)',
               marginBottom: 22,
+              color: resultColors.white,
             }}
           >
             <h3
               style={{
+                color: resultColors.white,
                 fontSize: 23,
                 lineHeight: 1.3,
                 marginTop: 0,
@@ -866,9 +889,11 @@ export default function Calculator({
 
             <p
               style={{
+                color: resultColors.text,
                 fontSize: 15,
                 lineHeight: 1.7,
                 marginBottom: 18,
+                opacity: 1,
               }}
             >
               Envie sua simulação para o engenheiro
@@ -895,10 +920,12 @@ export default function Calculator({
 
             <p
               style={{
+                color: resultColors.secondary,
                 fontSize: 12,
                 marginTop: 13,
                 marginBottom: 0,
                 lineHeight: 1.6,
+                opacity: 1,
               }}
             >
               Seus dados da simulação serão
@@ -925,8 +952,9 @@ export default function Calculator({
 
           <p
             style={{
+              color: resultColors.secondary,
               fontSize: 12,
-              opacity: 0.8,
+              opacity: 1,
               marginTop: 18,
               lineHeight: 1.7,
             }}
@@ -948,7 +976,7 @@ export default function Calculator({
     );
   }
 
-  // Formulário de simulação: seis etapas.
+  // ETAPAS DA CALCULADORA
   return (
     <div className="card">
       <div
@@ -1164,10 +1192,7 @@ export default function Calculator({
                   { length: maxes[0] },
                   (_, i) => i + 1
                 ).map((value) => (
-                  <option
-                    key={value}
-                    value={value}
-                  >
+                  <option key={value} value={value}>
                     {value}
                   </option>
                 ))}
@@ -1190,10 +1215,7 @@ export default function Calculator({
                   { length: maxes[1] },
                   (_, i) => i + 1
                 ).map((value) => (
-                  <option
-                    key={value}
-                    value={value}
-                  >
+                  <option key={value} value={value}>
                     {value}
                   </option>
                 ))}
@@ -1216,10 +1238,7 @@ export default function Calculator({
                   { length: maxes[2] + 1 },
                   (_, i) => i
                 ).map((value) => (
-                  <option
-                    key={value}
-                    value={value}
-                  >
+                  <option key={value} value={value}>
                     {value}
                   </option>
                 ))}
@@ -1269,11 +1288,12 @@ export default function Calculator({
               className="field"
               style={{ marginTop: 16 }}
             >
-              <label>
+              <label htmlFor="mezzBand">
                 Qual será a área aproximada do mezanino?
               </label>
 
               <AreaBandSelect
+                id="mezzBand"
                 value={mezzBand}
                 onChange={setMezzBand}
               />
@@ -1327,12 +1347,8 @@ export default function Calculator({
                   setGarage(e.target.value)
                 }
               >
-                <option value="sim">
-                  Sim
-                </option>
-                <option value="nao">
-                  Não
-                </option>
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
               </select>
             </div>
 
@@ -1348,23 +1364,20 @@ export default function Calculator({
                   setEdicula(e.target.value)
                 }
               >
-                <option value="nao">
-                  Não
-                </option>
-                <option value="sim">
-                  Sim
-                </option>
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
               </select>
             </div>
 
             {edicula === 'sim' && (
               <div className="field">
-                <label>
+                <label htmlFor="ediculaBand">
                   Qual será a área aproximada
                   da edícula?
                 </label>
 
                 <AreaBandSelect
+                  id="ediculaBand"
                   value={ediculaBand}
                   onChange={setEdiculaBand}
                 />
@@ -1383,9 +1396,7 @@ export default function Calculator({
                   setPool(e.target.value)
                 }
               >
-                <option value="nao">
-                  Não
-                </option>
+                <option value="nao">Não</option>
                 <option value="sim">
                   Sim — orçamento à parte
                 </option>
@@ -1470,10 +1481,7 @@ export default function Calculator({
                 }
               >
                 {states.map(([code, stateName]) => (
-                  <option
-                    value={code}
-                    key={code}
-                  >
+                  <option value={code} key={code}>
                     {code} — {stateName}
                   </option>
                 ))}
@@ -1500,10 +1508,7 @@ export default function Calculator({
                 </option>
 
                 {cities.map((item) => (
-                  <option
-                    value={item}
-                    key={item}
-                  >
+                  <option value={item} key={item}>
                     {item}
                   </option>
                 ))}
