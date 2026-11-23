@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -32,25 +33,76 @@ export default function Home() {
                 Alan Oliveira — Engenheiro Civil
               </div>
 
-              <h1>Seu projeto começa aqui.</h1>
+              <h1>
+                Vai construir? Descubra quanto pode
+                custar o seu projeto.
+              </h1>
 
               <p>
                 <b>
-                  Especialista em projetos residenciais,
-                  comerciais e industriais.
+                  Planeje sua construção com mais
+                  segurança e transparência.
                 </b>
-                <br />
-                Atendimento personalizado, do estudo inicial à
-                aprovação do seu projeto.
               </p>
 
               <p>
-                Tenha uma estimativa inicial para desenvolver e
-                aprovar seu projeto arquitetônico de forma rápida
-                e simples.
+                Faça uma simulação gratuita e descubra
+                uma estimativa inicial do investimento
+                nos projetos de engenharia da sua
+                futura construção.
               </p>
 
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 10,
+                  marginTop: 18,
+                  marginBottom: 24
+                }}
+              >
+                {[
+                  '✓ Simulação gratuita',
+                  '✓ Resultado rápido',
+                  '✓ Sem compromisso'
+                ].map((beneficio) => (
+                  <span
+                    key={beneficio}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '9px 13px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.12)',
+                      border:
+                        '1px solid rgba(255,255,255,0.22)',
+                      color: 'inherit',
+                      fontSize: 13,
+                      fontWeight: 600
+                    }}
+                  >
+                    {beneficio}
+                  </span>
+                ))}
+              </div>
+
               <Calculator onStartChange={setFlowStarted} />
+
+              <p
+                style={{
+                  fontSize: 12,
+                  opacity: 0.75,
+                  marginTop: 16,
+                  lineHeight: 1.6
+                }}
+              >
+                A simulação apresenta uma estimativa
+                preliminar dos projetos selecionados.
+                O valor final depende de análise técnica
+                e das características da construção.
+                A estimativa não representa o custo
+                total da obra.
+              </p>
             </div>
 
             {!flowStarted && (
@@ -86,7 +138,8 @@ export default function Home() {
           fontSize: 14,
           fontWeight: 800,
           textDecoration: 'none',
-          boxShadow: '0 10px 30px rgba(13,47,82,.20)'
+          boxShadow:
+            '0 10px 30px rgba(13,47,82,.20)'
         }}
       >
         <svg
@@ -112,8 +165,8 @@ export default function Home() {
           color: '#6d7786'
         }}
       >
-        Facilita Projeto • Alan Oliveira — Engenheiro Civil •
-        CREA/PR 187022/D
+        Facilita Projeto • Alan Oliveira —
+        Engenheiro Civil • CREA/PR 187022/D
       </footer>
     </>
   );
