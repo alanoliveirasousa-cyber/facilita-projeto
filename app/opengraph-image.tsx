@@ -1,4 +1,3 @@
-
 import { ImageResponse } from 'next/og';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -16,9 +15,6 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function OpenGraphImage() {
-  // Procura primeiro a logo otimizada.
-  // Se não encontrar, utiliza a logo original.
-
   const arquivos = [
     'alan-logo-otimizada.png',
     'alan-logo.png.png',
@@ -33,12 +29,13 @@ export default async function OpenGraphImage() {
         join(process.cwd(), 'public', arquivo)
       );
 
-      logoSrc =
-        `data:image/png;base64,${logoBuffer.toString('base64')}`;
+      logoSrc = `data:image/png;base64,${logoBuffer.toString(
+        'base64'
+      )}`;
 
       break;
     } catch {
-      // Tenta o próximo arquivo da lista.
+      // tenta o próximo arquivo
     }
   }
 
@@ -52,50 +49,120 @@ export default async function OpenGraphImage() {
           backgroundColor: '#FFFFFF',
           alignItems: 'center',
           justifyContent: 'center',
-          overflow: 'hidden',
+          padding: 70,
         }}
       >
-        {logoSrc ? (
-          <img
-            src={logoSrc}
-            width={1200}
-            height={1200}
-            alt="Alan Oliveira Engenharia Civil"
-            style={{
-              width: 1200,
-              height: 1200,
-              objectFit: 'contain',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#132744',
-            }}
-          >
-            <span
-              style={{
-                fontSize: 80,
-                fontWeight: 900,
-              }}
-            >
-              ALAN OLIVEIRA
-            </span>
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#FFFFFF',
+          }}
+        >
+          {logoSrc ? (
+            <>
+              {/* SÍMBOLO GRANDE */}
+              <div
+                style={{
+                  display: 'flex',
+                  width: 720,
+                  height: 500,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  marginBottom: 10,
+                }}
+              >
+                <img
+                  src={logoSrc}
+                  width={720}
+                  height={720}
+                  alt="Símbolo Alan Oliveira Engenharia Civil"
+                  style={{
+                    width: 720,
+                    height: 720,
+                    objectFit: 'cover',
+                    objectPosition: 'center top',
+                  }}
+                />
+              </div>
 
-            <span
+              {/* NOME */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 10,
+                }}
+              >
+                <span
+                  style={{
+                    display: 'flex',
+                    fontSize: 96,
+                    lineHeight: 1,
+                    fontWeight: 900,
+                    color: '#030B3D',
+                    letterSpacing: -1.5,
+                    textAlign: 'center',
+                  }}
+                >
+                  ALAN OLIVEIRA
+                </span>
+
+                <span
+                  style={{
+                    display: 'flex',
+                    fontSize: 52,
+                    lineHeight: 1.1,
+                    fontWeight: 700,
+                    color: '#030B3D',
+                    marginTop: 12,
+                    letterSpacing: 1,
+                    textAlign: 'center',
+                  }}
+                >
+                  ENGENHARIA CIVIL
+                </span>
+              </div>
+            </>
+          ) : (
+            <div
               style={{
-                fontSize: 42,
-                marginTop: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#030B3D',
               }}
             >
-              ENGENHARIA CIVIL
-            </span>
-          </div>
-        )}
+              <span
+                style={{
+                  fontSize: 96,
+                  fontWeight: 900,
+                  textAlign: 'center',
+                }}
+              >
+                ALAN OLIVEIRA
+              </span>
+
+              <span
+                style={{
+                  fontSize: 52,
+                  marginTop: 12,
+                  textAlign: 'center',
+                }}
+              >
+                ENGENHARIA CIVIL
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     ),
     {
