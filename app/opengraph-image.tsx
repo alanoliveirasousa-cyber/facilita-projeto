@@ -1,7 +1,12 @@
+
 import { ImageResponse } from 'next/og';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
+export const runtime = 'nodejs';
 
 export const alt =
-  'Facilita Projeto - Simule gratuitamente o valor do seu projeto de engenharia';
+  'Facilita Projeto - Simule o valor do seu projeto com Alan Oliveira Engenharia Civil';
 
 export const size = {
   width: 1200,
@@ -10,179 +15,114 @@ export const size = {
 
 export const contentType = 'image/png';
 
-const siteUrl = 'https://facilita-projeto.vercel.app';
+export default async function OpenGraphImage() {
+  // Lê a logo diretamente da pasta public.
+  const logoBuffer = await readFile(
+    join(process.cwd(), 'public', 'alan-logo.png')
+  );
 
-export default function OpenGraphImage() {
-  const logoUrl = new URL(
-    '/alan-logo.png',
-    siteUrl
-  ).toString();
+  // Converte a imagem para uma fonte incorporada.
+  // Não utiliza o domínio público durante o build.
+  const logoSrc =
+    `data:image/png;base64,${logoBuffer.toString('base64')}`;
 
   return new ImageResponse(
     (
       <div
         style={{
+          display: 'flex',
           width: '100%',
           height: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'stretch',
-          padding: '52px 58px',
           backgroundColor: '#1D335B',
-          color: '#FFFFFF',
+          padding: '55px 60px',
           fontFamily: 'Arial, sans-serif',
-          position: 'relative',
+          color: '#FFFFFF',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        {/* FUNDO DECORATIVO */}
+        {/* CONTEÚDO ESQUERDO */}
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              right: -120,
-              top: 90,
-              width: 380,
-              height: 380,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255,255,255,0.06)',
-              display: 'flex',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              right: 120,
-              top: 260,
-              width: 210,
-              height: 210,
-              borderRadius: '50%',
-              border: '3px solid rgba(255,255,255,0.18)',
-              display: 'flex',
-            }}
-          />
-        </div>
-
-        {/* COLUNA ESQUERDA */}
-        <div
-          style={{
-            width: '62%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            zIndex: 2,
-            paddingRight: 20,
+            width: 660,
+            height: '100%',
           }}
         >
-          {/* CABEÇALHO */}
+          {/* IDENTIDADE */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
             }}
           >
-            <div
+            <span
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                width: '100%',
+                fontSize: 32,
+                fontWeight: 900,
+                color: '#F4BE00',
+                letterSpacing: 1,
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 32,
-                    fontWeight: 900,
-                    color: '#F4BE00',
-                    letterSpacing: 1,
-                  }}
-                >
-                  FACILITA PROJETO
-                </span>
+              FACILITA PROJETO
+            </span>
 
-                <span
-                  style={{
-                    fontSize: 16,
-                    color: '#D7E3EF',
-                    marginTop: 8,
-                  }}
-                >
-                  por Alan Oliveira
-                </span>
-              </div>
+            <span
+              style={{
+                fontSize: 17,
+                color: '#E8EEF7',
+                marginTop: 7,
+              }}
+            >
+              por Alan Oliveira
+            </span>
+          </div>
 
-              <div
-                style={{
-                  display: 'flex',
-                  padding: '10px 18px',
-                  borderRadius: 999,
-                  border: '1px solid rgba(255,255,255,0.20)',
-                  backgroundColor:
-                    'rgba(255,255,255,0.05)',
-                  fontSize: 16,
-                  color: '#FFFFFF',
-                }}
-              >
-                ENGENHARIA CIVIL
-              </div>
-            </div>
+          {/* CHAMADA PRINCIPAL */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <span
+              style={{
+                fontSize: 64,
+                fontWeight: 900,
+                color: '#FFFFFF',
+                lineHeight: 1.1,
+              }}
+            >
+              Vai construir?
+            </span>
 
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                marginTop: 58,
+                fontSize: 47,
+                fontWeight: 800,
+                lineHeight: 1.17,
+                color: '#F4BE00',
+                marginTop: 20,
               }}
             >
-              <span
-                style={{
-                  fontSize: 64,
-                  lineHeight: 1.08,
-                  fontWeight: 900,
-                  letterSpacing: -2,
-                  color: '#FFFFFF',
-                }}
-              >
-                Vai construir?
-              </span>
-
-              <span
-                style={{
-                  fontSize: 48,
-                  lineHeight: 1.15,
-                  fontWeight: 800,
-                  color: '#F4BE00',
-                  marginTop: 18,
-                  maxWidth: 600,
-                }}
-              >
-                Descubra quanto pode custar
-                o seu projeto.
-              </span>
-
-              <span
-                style={{
-                  fontSize: 23,
-                  lineHeight: 1.5,
-                  color: '#E8EEF7',
-                  marginTop: 26,
-                }}
-              >
-                Simulação online, gratuita e sem compromisso.
-              </span>
+              <span>Descubra quanto</span>
+              <span>pode custar o seu</span>
+              <span>projeto.</span>
             </div>
+
+            <span
+              style={{
+                fontSize: 21,
+                color: '#E8EEF7',
+                marginTop: 24,
+              }}
+            >
+              Simulação online, gratuita e sem compromisso.
+            </span>
           </div>
 
           {/* RODAPÉ */}
@@ -194,19 +134,19 @@ export default function OpenGraphImage() {
           >
             <div
               style={{
-                width: '100%',
-                height: 2,
-                backgroundColor: 'rgba(255,255,255,0.18)',
-                marginBottom: 22,
                 display: 'flex',
+                height: 2,
+                width: '100%',
+                backgroundColor: '#496285',
+                marginBottom: 18,
               }}
             />
 
             <div
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 width: '100%',
               }}
             >
@@ -218,7 +158,7 @@ export default function OpenGraphImage() {
               >
                 <span
                   style={{
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: 700,
                     color: '#FFFFFF',
                   }}
@@ -229,8 +169,8 @@ export default function OpenGraphImage() {
                 <span
                   style={{
                     fontSize: 15,
+                    marginTop: 5,
                     color: '#D7E3EF',
-                    marginTop: 4,
                   }}
                 >
                   Engenheiro Civil
@@ -240,12 +180,12 @@ export default function OpenGraphImage() {
               <div
                 style={{
                   display: 'flex',
-                  padding: '15px 24px',
                   backgroundColor: '#F4BE00',
+                  padding: '14px 20px',
                   borderRadius: 12,
                   color: '#132744',
+                  fontSize: 17,
                   fontWeight: 900,
-                  fontSize: 18,
                 }}
               >
                 SIMULE GRATUITAMENTE
@@ -254,43 +194,30 @@ export default function OpenGraphImage() {
           </div>
         </div>
 
-        {/* COLUNA DIREITA COM A LOGO */}
+        {/* LOGO NA LATERAL DIREITA */}
         <div
           style={{
-            width: '34%',
             display: 'flex',
+            width: 340,
+            height: 390,
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 2,
+            backgroundColor: '#FFFFFF',
+            borderRadius: 24,
+            padding: 22,
           }}
         >
-          <div
+          <img
+            src={logoSrc}
+            width={296}
+            height={296}
+            alt="Alan Oliveira Engenharia Civil"
             style={{
-              width: '100%',
-              height: '100%',
-              maxHeight: 470,
-              borderRadius: 26,
-              backgroundColor: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '34px',
-              boxShadow:
-                '0 18px 40px rgba(0,0,0,0.18)',
+              width: 296,
+              height: 296,
+              objectFit: 'contain',
             }}
-          >
-            <img
-              src={logoUrl}
-              alt="Logo Alan Oliveira Engenharia Civil"
-              style={{
-                width: '100%',
-                maxWidth: 360,
-                height: 'auto',
-                objectFit: 'contain',
-              }}
-            />
-          </div>
+          />
         </div>
       </div>
     ),
