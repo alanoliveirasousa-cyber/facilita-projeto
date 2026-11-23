@@ -46,7 +46,7 @@ export default async function OpenGraphImage() {
             width: 600,
           }}
         >
-          {/* SOMENTE O SÍMBOLO ORIGINAL */}
+          {/* SÍMBOLO DA LOGO */}
           <div
             style={{
               display: 'flex',
@@ -69,7 +69,6 @@ export default async function OpenGraphImage() {
                 height: 1250,
                 left: -370,
                 top: -334,
-                maxWidth: 'none',
               }}
             />
           </div>
