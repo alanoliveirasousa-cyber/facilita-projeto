@@ -45,6 +45,7 @@ function residentialFacade(
   style: string
 ) {
   const model = floors === 'terrea' ? 'terrea' : 'sobrado';
+
   const suffix =
     style === 'Moderna'
       ? 'moderna'
@@ -157,6 +158,14 @@ function AreaBandSelect({
   );
 }
 
+type SimulationResult = {
+  value: number;
+  range: {
+    min: number;
+    max: number;
+  };
+};
+
 export default function Calculator({
   onStartChange,
 }: {
@@ -193,10 +202,8 @@ export default function Calculator({
   const [consent, setConsent] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{
-    value: number;
-    range: { min: number; max: number };
-  } | null>(null);
+  const [result, setResult] =
+    useState<SimulationResult | null>(null);
 
   const totalArea = useMemo(
     () =>
@@ -229,7 +236,9 @@ export default function Calculator({
           'https://servicodados.ibge.gov.br/api/v1/localidades/estados/PR/municipios?orderBy=nome'
         );
 
-        if (!response.ok) throw new Error('Erro no IBGE');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar municípios');
+        }
 
         const data: { nome: string }[] =
           await response.json();
@@ -262,7 +271,9 @@ export default function Calculator({
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${newUf}/municipios?orderBy=nome`
       );
 
-      if (!response.ok) throw new Error('Erro no IBGE');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar municípios');
+      }
 
       const data: { nome: string }[] =
         await response.json();
@@ -275,6 +286,7 @@ export default function Calculator({
     }
   }
 
+  // Mantém as funções de cálculo do projeto original.
   function calc() {
     if (!type) return 0;
 
@@ -326,6 +338,14 @@ export default function Calculator({
     }, 2400);
   }
 
+  const projectTypeName =
+    type === 'residential'
+      ? 'Residencial'
+      : type === 'commercial'
+      ? 'Comercial'
+      : 'Industrial';
+
+  // Etapa 3: mensagem de WhatsApp personalizada.
   function goWhats() {
     if (!result) return;
 
@@ -340,45 +360,69 @@ export default function Calculator({
       return;
     }
 
-    const projectType =
+    const details =
       type === 'residential'
-        ? 'Residencial'
-        : type === 'commercial'
-        ? 'Comercial'
-        : 'Industrial';
+        ? [
+            `Modelo: ${
+              floors === 'terrea'
+                ? 'Casa térrea'
+                : 'Sobrado'
+            }`,
+            `Quartos: ${rooms}`,
+            `Banheiros: ${baths}`,
+            `Suítes: ${suites}`,
+            `Garagem incluída na metragem: ${
+              garage === 'sim' ? 'Sim' : 'Não'
+            }`,
+            `Edícula: ${
+              edicula === 'sim' ? 'Sim' : 'Não'
+            }`,
+            ...(edicula === 'sim'
+              ? [`Faixa da edícula: ${ediculaBand} m²`]
+              : []),
+            `Piscina: ${
+              pool === 'sim'
+                ? 'Sim, orçamento à parte'
+                : 'Não'
+            }`,
+          ]
+        : [
+            `Mezanino: ${
+              mezz === 'sim' ? 'Sim' : 'Não'
+            }`,
+            ...(mezz === 'sim'
+              ? [`Faixa do mezanino: ${mezzBand} m²`]
+              : []),
+          ];
 
-    const extra =
-      type === 'residential'
-        ? `\nModelo: ${
-            floors === 'terrea' ? 'Casa térrea' : 'Sobrado'
-          }\nQuartos: ${rooms}\nBanheiros: ${baths}\nSuítes: ${suites}\nGaragem incluída na área: ${
-            garage === 'sim' ? 'Sim' : 'Não'
-          }\nEdícula: ${
-            edicula === 'sim' ? 'Sim' : 'Não'
-          }\nPiscina: ${
-            pool === 'sim' ? 'Sim' : 'Não'
-          }`
-        : `\nMezanino: ${
-            mezz === 'sim' ? 'Sim' : 'Não'
-          }`;
+    const message = [
+      'Olá, Alan! Fiz uma simulação no Facilita Projeto e gostaria de receber um orçamento personalizado.',
+      '',
+      '*DADOS DO CLIENTE*',
+      `Nome: ${name}`,
+      `Cidade: ${city}/${uf}`,
+      `WhatsApp: ${whatsapp}`,
+      '',
+      '*DADOS DA CONSTRUÇÃO*',
+      `Tipo: ${projectTypeName}`,
+      `Área principal: ${area} m²`,
+      `Área considerada: ${totalArea} m²`,
+      `Estilo: ${facadeStyle}`,
+      ...details,
+      '',
+      '*ESTIMATIVA GERADA*',
+      `${money(result.range.min)} a ${money(result.range.max)}`,
+      '',
+      'Entendo que este é um valor preliminar para o projeto arquitetônico, sujeito à análise técnica.',
+      '',
+      'Gostaria de conversar sobre os próximos passos e receber uma proposta personalizada.',
+    ].join('\n');
 
-    const msg = `Olá, Alan! Fiz uma simulação no Facilita Projeto.
+    const url = `https://wa.me/${number}?text=${encodeURIComponent(
+      message
+    )}`;
 
-Nome: ${name}
-Cidade: ${city}/${uf}
-Tipo de projeto: ${projectType}
-Metragem aproximada: ${totalArea} m²${extra}
-Estilo: ${facadeStyle}
-
-Estimativa: ${money(result.range.min)} a ${money(result.range.max)}
-
-Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizada.`;
-
-    window.open(
-      `https://wa.me/${number}?text=${encodeURIComponent(msg)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   function restart(keep: boolean) {
@@ -400,13 +444,6 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
     type === 'industrial'
       ? [500, 600, 700, 800, 900, 1000]
       : [100, 150, 200, 250, 300];
-
-  const typeLabel =
-    type === 'residential'
-      ? 'Residencial'
-      : type === 'commercial'
-      ? 'Comercial'
-      : 'Industrial';
 
   const styles: ChoiceItem[] =
     type === 'residential'
@@ -437,6 +474,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
           image: industrialFacade(style),
         }));
 
+  // Tela inicial da calculadora.
   if (!started) {
     return (
       <button
@@ -452,6 +490,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
     );
   }
 
+  // Tela de carregamento.
   if (loading) {
     return (
       <div className="card loader">
@@ -468,7 +507,30 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
     );
   }
 
+  // ETAPA 3: NOVA TELA DE RESULTADO.
   if (step === 99 && result) {
+    const summaryStyle: React.CSSProperties = {
+      padding: '14px 16px',
+      borderRadius: 12,
+      background: 'rgba(255,255,255,0.08)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      minWidth: 0,
+    };
+
+    const summaryLabel: React.CSSProperties = {
+      display: 'block',
+      fontSize: 12,
+      opacity: 0.8,
+      marginBottom: 6,
+    };
+
+    const summaryValue: React.CSSProperties = {
+      display: 'block',
+      fontSize: 16,
+      fontWeight: 700,
+      overflowWrap: 'anywhere',
+    };
+
     return (
       <div className="result result-layout">
         <div className="result-content">
@@ -479,120 +541,372 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             FACILITA PROJETO
           </div>
 
-          <h2>
-            {type === 'residential'
-              ? 'Seu projeto começa a ganhar forma.'
-              : type === 'commercial'
-              ? 'Uma base objetiva para avançar com seu projeto.'
-              : 'Pré-análise técnica inicial do seu projeto.'}
-          </h2>
-
-          <div className="price">
-            {money(result.range.min)} a{' '}
-            {money(result.range.max)}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 12px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              marginTop: 12,
+              marginBottom: 16,
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            ✓ Simulação concluída
           </div>
 
-          <p>
-            Estimativa inicial do projeto arquitetônico.
+          <h2>Sua estimativa está pronta!</h2>
+
+          <p
+            style={{
+              fontSize: 16,
+              lineHeight: 1.7,
+              marginBottom: 20,
+            }}
+          >
+            {name}, agora você já tem uma estimativa
+            inicial do investimento para desenvolver
+            o projeto da sua construção.
           </p>
 
-          <div className="summary">
-            <div>
-              <b>Tipo</b>
-              <br />
-              {typeLabel}
+          <div
+            style={{
+              padding: '22px 18px',
+              borderRadius: 16,
+              background: 'rgba(255,255,255,0.10)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              marginBottom: 24,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                marginBottom: 12,
+                opacity: 0.9,
+              }}
+            >
+              ESTIMATIVA DO PROJETO ARQUITETÔNICO
             </div>
 
-            <div>
-              <b>Área considerada</b>
-              <br />
-              {totalArea} m²
+            <div
+              className="price"
+              style={{
+                margin: '8px 0 16px',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {money(result.range.min)}
+              {' a '}
+              {money(result.range.max)}
             </div>
 
-            <div>
-              <b>Cidade</b>
-              <br />
-              {city}/{uf}
+            <p
+              style={{
+                fontSize: 13,
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              Faixa estimada de honorários para o
+              desenvolvimento do projeto arquitetônico.
+              O orçamento definitivo será apresentado
+              após avaliação técnica.
+            </p>
+          </div>
+
+          <h3
+            style={{
+              marginBottom: 14,
+              fontSize: 20,
+            }}
+          >
+            Confira os dados da sua construção
+          </h3>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(auto-fit, minmax(min(100%, 165px), 1fr))',
+              gap: 10,
+              marginBottom: 24,
+            }}
+          >
+            <div style={summaryStyle}>
+              <span style={summaryLabel}>
+                Tipo de construção
+              </span>
+              <strong style={summaryValue}>
+                {projectTypeName}
+              </strong>
             </div>
 
-            <div>
-              <b>Estilo</b>
-              <br />
-              {facadeStyle}
+            <div style={summaryStyle}>
+              <span style={summaryLabel}>
+                Área considerada
+              </span>
+              <strong style={summaryValue}>
+                {totalArea} m²
+              </strong>
+            </div>
+
+            <div style={summaryStyle}>
+              <span style={summaryLabel}>
+                Localização
+              </span>
+              <strong style={summaryValue}>
+                {city}/{uf}
+              </strong>
+            </div>
+
+            <div style={summaryStyle}>
+              <span style={summaryLabel}>
+                Estilo
+              </span>
+              <strong style={summaryValue}>
+                {facadeStyle}
+              </strong>
             </div>
 
             {type === 'residential' ? (
               <>
-                <div>
-                  <b>Modelo</b>
-                  <br />
-                  {floors === 'terrea'
-                    ? 'Casa térrea'
-                    : 'Sobrado'}
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Modelo
+                  </span>
+                  <strong style={summaryValue}>
+                    {floors === 'terrea'
+                      ? 'Casa térrea'
+                      : 'Sobrado'}
+                  </strong>
                 </div>
 
-                <div>
-                  <b>Quartos</b>
-                  <br />
-                  {rooms}
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Quartos
+                  </span>
+                  <strong style={summaryValue}>
+                    {rooms}
+                  </strong>
                 </div>
 
-                <div>
-                  <b>Banheiros</b>
-                  <br />
-                  {baths}
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Banheiros
+                  </span>
+                  <strong style={summaryValue}>
+                    {baths}
+                  </strong>
                 </div>
 
-                <div>
-                  <b>Suítes</b>
-                  <br />
-                  {suites}
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Suítes
+                  </span>
+                  <strong style={summaryValue}>
+                    {suites}
+                  </strong>
+                </div>
+
+                {edicula === 'sim' && (
+                  <div style={summaryStyle}>
+                    <span style={summaryLabel}>
+                      Edícula
+                    </span>
+                    <strong style={summaryValue}>
+                      {ediculaBand} m²
+                    </strong>
+                  </div>
+                )}
+
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Piscina
+                  </span>
+                  <strong style={summaryValue}>
+                    {pool === 'sim'
+                      ? 'Sim, orçamento separado'
+                      : 'Não'}
+                  </strong>
                 </div>
               </>
             ) : (
-              <div>
-                <b>Mezanino</b>
-                <br />
-                {mezz === 'sim' ? 'Sim' : 'Não'}
-              </div>
+              <>
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Área principal
+                  </span>
+                  <strong style={summaryValue}>
+                    {area} m²
+                  </strong>
+                </div>
+
+                <div style={summaryStyle}>
+                  <span style={summaryLabel}>
+                    Mezanino
+                  </span>
+                  <strong style={summaryValue}>
+                    {mezz === 'sim'
+                      ? `Sim — ${mezzBand} m²`
+                      : 'Não'}
+                  </strong>
+                </div>
+              </>
             )}
           </div>
 
-          {pool === 'sim' &&
-            type === 'residential' && (
+          <div
+            style={{
+              padding: 18,
+              borderRadius: 14,
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              marginBottom: 20,
+            }}
+          >
+            <h3
+              style={{
+                fontSize: 18,
+                marginTop: 0,
+                marginBottom: 12,
+              }}
+            >
+              O que você precisa saber sobre esta estimativa
+            </h3>
+
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                marginBottom: 12,
+              }}
+            >
+              ✓ O valor apresentado é uma estimativa
+              inicial para o desenvolvimento do
+              projeto arquitetônico.
+            </p>
+
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                marginBottom: 12,
+              }}
+            >
+              ✓ Os detalhes e as necessidades
+              específicas da sua construção serão
+              analisados antes do orçamento definitivo.
+            </p>
+
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                marginBottom: 12,
+              }}
+            >
+              ✓ Projetos complementares, itens
+              especiais, taxas, emolumentos,
+              despesas administrativas e custos
+              relacionados às aprovações não estão
+              incluídos nesta estimativa e serão
+              avaliados separadamente.
+            </p>
+
+            {type === 'residential' && pool === 'sim' && (
               <p
-                className="muted"
-                style={{ color: '#d7e3ef' }}
+                style={{
+                  fontSize: 14,
+                  lineHeight: 1.8,
+                  marginBottom: 12,
+                }}
               >
-                Projeto da piscina será avaliado e
-                orçado separadamente.
+                ✓ O projeto da piscina será
+                avaliado e orçado separadamente.
               </p>
             )}
 
-          <p
-            className="muted"
-            style={{ color: '#d7e3ef' }}
-          >
-            Esta é uma estimativa referente ao
-            desenvolvimento do projeto arquitetônico.
-            Projetos complementares, itens especiais,
-            taxas, emolumentos, despesas administrativas
-            e demais custos relacionados aos processos
-            de aprovação não estão incluídos e serão
-            avaliados separadamente. Condições de
-            pagamento, parcelamento e possíveis
-            descontos à vista poderão ser definidos
-            posteriormente.
-          </p>
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                marginBottom: 0,
+              }}
+            >
+              ✓ Esta estimativa não representa o
+              custo total de execução da obra.
+            </p>
+          </div>
 
-          <p
-            className="muted"
-            style={{ color: '#d7e3ef' }}
+          <div
+            style={{
+              padding: '24px 18px',
+              borderRadius: 16,
+              background: 'rgba(255,193,7,0.10)',
+              border: '1px solid rgba(255,212,109,0.35)',
+              marginBottom: 22,
+            }}
           >
-            Esta estimativa não representa o custo
-            total da obra. O orçamento final depende
-            de uma análise técnica personalizada.
-          </p>
+            <h3
+              style={{
+                fontSize: 23,
+                lineHeight: 1.3,
+                marginTop: 0,
+                marginBottom: 12,
+              }}
+            >
+              Vamos transformar seu planejamento
+              em um projeto real?
+            </h3>
+
+            <p
+              style={{
+                fontSize: 15,
+                lineHeight: 1.7,
+                marginBottom: 18,
+              }}
+            >
+              Envie sua simulação para o engenheiro
+              Alan Oliveira e solicite um orçamento
+              personalizado para sua construção.
+            </p>
+
+            <button
+              type="button"
+              className="cta"
+              onClick={goWhats}
+              style={{
+                width: '100%',
+                minHeight: 56,
+                whiteSpace: 'normal',
+                textAlign: 'center',
+                lineHeight: 1.4,
+                padding: '14px 18px',
+              }}
+            >
+              SOLICITAR MEU ORÇAMENTO
+              PERSONALIZADO NO WHATSAPP
+            </button>
+
+            <p
+              style={{
+                fontSize: 12,
+                marginTop: 13,
+                marginBottom: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              Seus dados da simulação serão
+              preenchidos automaticamente na
+              mensagem. Você poderá revisar
+              antes de enviar.
+            </p>
+          </div>
 
           <div className="actions">
             <button
@@ -607,28 +921,34 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             >
               Refazer simulação
             </button>
-
-            <button
-              type="button"
-              className="cta"
-              onClick={goWhats}
-            >
-              Quero conversar sobre meu projeto e
-              receber uma proposta personalizada
-            </button>
           </div>
+
+          <p
+            style={{
+              fontSize: 12,
+              opacity: 0.8,
+              marginTop: 18,
+              lineHeight: 1.7,
+            }}
+          >
+            As condições de pagamento,
+            parcelamento e possíveis descontos
+            à vista poderão ser definidos
+            posteriormente na proposta comercial.
+          </p>
         </div>
 
         <div className="result-figure">
           <img
             src="/alan-result-cartoon.png"
-            alt="Alan Oliveira apontando para o contato"
+            alt="Alan Oliveira, engenheiro civil"
           />
         </div>
       </div>
     );
   }
 
+  // Formulário de simulação: seis etapas.
   return (
     <div className="card">
       <div
@@ -949,7 +1269,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
               className="field"
               style={{ marginTop: 16 }}
             >
-              <label htmlFor="mezzBand">
+              <label>
                 Qual será a área aproximada do mezanino?
               </label>
 
@@ -1039,7 +1359,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
 
             {edicula === 'sim' && (
               <div className="field">
-                <label htmlFor="ediculaBand">
+                <label>
                   Qual será a área aproximada
                   da edícula?
                 </label>
@@ -1083,7 +1403,7 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
 
           <p>
             Tipo de projeto:{' '}
-            <b>{typeLabel}</b>
+            <b>{projectTypeName}</b>
           </p>
 
           <p>
@@ -1256,13 +1576,15 @@ Gostaria de conversar melhor sobre o projeto e receber uma proposta personalizad
             className="cta"
             disabled={step === 0 && !type}
             onClick={() => {
-              if (step === 2 && type === 'residential') {
-                if (suites > rooms) {
-                  alert(
-                    'A quantidade de suítes não pode ser maior que a de quartos.'
-                  );
-                  return;
-                }
+              if (
+                step === 2 &&
+                type === 'residential' &&
+                suites > rooms
+              ) {
+                alert(
+                  'A quantidade de suítes não pode ser maior que a de quartos.'
+                );
+                return;
               }
 
               setStep(step + 1);
